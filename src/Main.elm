@@ -36,7 +36,7 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg _ =
     case msg of
-        _ ->
+        GotData ->
             ( Success, Cmd.none )
 
 
