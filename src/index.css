@@ -1,0 +1,4 @@
+body {
+  background: var(--Dark-Navy, #313e51);
+  color: var(--Pure-White, #fff);
+}

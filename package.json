@@ -1,0 +1,16 @@
+{
+  "name": "quiz-app",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "elm": "^0.19.1-6",
+    "elm-format": "^0.8.7",
+    "elm-live": "^4.0.2",
+    "vite": "^5.0.11",
+    "vite-plugin-elm": "^2.9.0"
+  }
+}
