@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (href)
+import Html.Attributes exposing (class, href, src)
 
 
 main : Program () Model Msg
@@ -70,7 +70,9 @@ view model =
 
 viewHeader : Html Msg
 viewHeader =
-    header [] []
+    header [ class "container page-header" ]
+        [ nav [] []
+        ]
 
 
 viewMain : Model -> Html Msg
@@ -85,23 +87,23 @@ viewMain model =
                 [ p [] [ text "Loading..." ] ]
 
         Success ->
-            main_ []
+            main_ [ class "container" ]
                 [ header []
                     [ h1 []
                         [ span [] [ text "Welcome to the" ]
-                        , span [] [ text "Frontend Quiz!" ]
+                        , text "Frontend Quiz!"
                         ]
+                    , p []
+                        [ text "Pick a subject to get started." ]
                     ]
-                , p []
-                    [ text "Pick a subject to get started." ]
                 , ul []
                     [ li []
-                        [ a [ href "/html" ] [ text "HTML" ] ]
+                        [ a [ href "/html" ] [ img [ src "/assets/images/icon-html.svg" ] [], text "HTML" ] ]
                     , li []
-                        [ a [ href "/css" ] [ text "CSS" ] ]
+                        [ a [ href "/css" ] [ img [ src "/assets/images/icon-css.svg" ] [], text "CSS" ] ]
                     , li []
-                        [ a [ href "/javascript" ] [ text "JavaScript" ] ]
+                        [ a [ href "/javascript" ] [ img [ src "/assets/images/icon-js.svg" ] [], text "JavaScript" ] ]
                     , li []
-                        [ a [ href "/accessibility" ] [ text "Accessibility" ] ]
+                        [ a [ href "/accessibility" ] [ img [ src "/assets/images/icon-accessibility.svg" ] [], text "Accessibility" ] ]
                     ]
                 ]
