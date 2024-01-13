@@ -2,11 +2,12 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (..)
+import Html.Attributes exposing (href)
 
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.document
         { init = init
         , view = view
         , update = update
@@ -26,7 +27,7 @@ type Model
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Loading, Cmd.none )
+    ( Success, Cmd.none )
 
 
 
@@ -57,14 +58,50 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
+    { title = "Frontend Quiz App"
+    , body =
+        [ viewHeader
+        , viewMain model
+        ]
+    }
+
+
+viewHeader : Html Msg
+viewHeader =
+    header [] []
+
+
+viewMain : Model -> Html Msg
+viewMain model =
     case model of
         Error ->
-            div [] [ text "Error!" ]
+            main_ []
+                [ p [] [ text "Error!" ] ]
 
         Loading ->
-            div [] [ text "Loading..." ]
+            main_ []
+                [ p [] [ text "Loading..." ] ]
 
         Success ->
-            div [] [ text "Success." ]
+            main_ []
+                [ header []
+                    [ h1 []
+                        [ span [] [ text "Welcome to the" ]
+                        , span [] [ text "Frontend Quiz!" ]
+                        ]
+                    ]
+                , p []
+                    [ text "Pick a subject to get started." ]
+                , ul []
+                    [ li []
+                        [ a [ href "/html" ] [ text "HTML" ] ]
+                    , li []
+                        [ a [ href "/css" ] [ text "CSS" ] ]
+                    , li []
+                        [ a [ href "/javascript" ] [ text "JavaScript" ] ]
+                    , li []
+                        [ a [ href "/accessibility" ] [ text "Accessibility" ] ]
+                    ]
+                ]
