@@ -1,4 +1,38 @@
+@font-face {
+  font-family: "Rubik";
+  src: url("/assets/fonts/Rubik-VariableFont_wght.ttf") format("truetype");
+}
+
+:root {
+  /* colors */
+  --dark-navy: #313e51;
+  --pure-white: #fff;
+
+  --bg-color: var(--dark-navy);
+  --text-color: var(--pure-white);
+
+  /* font sizes in rem */
+  --fs-64: 4rem;
+  --fs-36: 2.25rem;
+  --fs-28: 1.75rem;
+  --fs-20: 1.25rem;
+  --fs: var(--fs-28);
+
+  /* font family */
+  --ff: "Rubik", sans-serif;
+
+  /* font weight */
+  --fw: 500;
+
+  /* line height */
+  --lh: 100%;
+}
+
 body {
-  background: var(--Dark-Navy, #313e51);
-  color: var(--Pure-White, #fff);
+  background-color: var(--bg-color, #313e51);
+  color: var(--text-color, #fff);
+  font-family: var(--ff);
+  font-weight: var(--fw);
+  font-size: var(--fs);
+  line-height: var(--lh);
 }
