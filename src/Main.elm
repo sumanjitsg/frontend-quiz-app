@@ -5,6 +5,7 @@ import Browser.Navigation as Navigation
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
 import Url
+import VitePluginHelper exposing (asset)
 
 
 main : Program () Model Msg
@@ -95,12 +96,12 @@ viewMain =
             ]
         , ul []
             [ li []
-                [ a [ href "/html" ] [ img [ src "/assets/images/icon-html.svg" ] [], text "HTML" ] ]
+                [ a [ href "/html" ] [ img [ src <| asset "/assets/images/icon-html.svg" ] [], text "HTML" ] ]
             , li []
-                [ a [ href "/css" ] [ img [ src "/assets/images/icon-css.svg" ] [], text "CSS" ] ]
+                [ a [ href "/css" ] [ img [ src <| asset "/assets/images/icon-css.svg" ] [], text "CSS" ] ]
             , li []
-                [ a [ href "/javascript" ] [ img [ src "/assets/images/icon-js.svg" ] [], text "JavaScript" ] ]
+                [ a [ href "/javascript" ] [ img [ src <| asset "/assets/images/icon-js.svg" ] [], text "JavaScript" ] ]
             , li []
-                [ a [ href "/accessibility" ] [ img [ src "/assets/images/icon-accessibility.svg" ] [], text "Accessibility" ] ]
+                [ a [ href "/accessibility" ] [ img [ src <| asset "/assets/images/icon-accessibility.svg" ] [], text "Accessibility" ] ]
             ]
         ]
