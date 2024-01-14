@@ -1,4 +1,181 @@
+@font-face {
+  font-family: "Rubik";
+  src: url("/assets/fonts/Rubik-VariableFont_wght.ttf") format("truetype");
+}
+
+:root {
+  /* colors */
+  --dark-navy: #313e51;
+  --navy: #3b4d66;
+  --light-bluish: #abc1e1;
+  --pure-white: #fff;
+
+  --bg-color: var(--dark-navy);
+  --text-color: var(--pure-white);
+
+  /* font size */
+  --fs: 1.125rem;
+
+  /* font family */
+  --ff: "Rubik", sans-serif;
+
+  /* font weight */
+  --fw: 500;
+
+  /* line height */
+  --lh: 1.5;
+}
+
 body {
-  background: var(--Dark-Navy, #313e51);
-  color: var(--Pure-White, #fff);
+  background-color: var(--bg-color, #313e51);
+  color: var(--text-color, #fff);
+  font-family: var(--ff);
+  font-weight: var(--fw);
+  font-size: var(--fs);
+  line-height: var(--lh);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* RESET */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1,
+p,
+ul {
+  margin: 0;
+}
+
+h1 {
+  line-height: 1;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* LAYOUT */
+
+main {
+  padding-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+main > * {
+  flex-basis: 100%;
+}
+
+main > header > * + * {
+  margin-top: 1rem;
+}
+
+h1 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+a {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+h1 > span:first-child {
+  font-weight: 300;
+}
+
+li {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+li + li {
+  margin-top: 0.75rem;
+}
+
+a {
+  padding: 0.75rem;
+  background-color: var(--navy);
+}
+
+a > img {
+  width: 2.5rem;
+}
+
+@media (width >= 64rem /* 1024px */) {
+  main {
+    padding-top: 0;
+    flex-direction: row;
+    gap: 8rem;
+  }
+
+  main > header > * + * {
+    margin-top: 3rem;
+  }
+
+  a > img {
+    width: 3.5rem;
+  }
+}
+
+.container {
+  padding: 0 1.5rem;
+}
+
+.page-header {
+  padding-block: 1rem;
+}
+
+@media (width >= 64rem /* 1024px */) {
+  .container {
+    padding: 0 8.75rem;
+  }
+
+  .page-header {
+    padding-block: 5rem;
+  }
+}
+
+/* Content */
+
+h1 {
+  font-size: 2.5rem;
+}
+
+p {
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--light-bluish);
+}
+
+@media (width >= 64rem /* 1024px */) {
+  h1 {
+    font-size: 4rem;
+  }
+
+  p {
+    font-size: 1.25rem;
+  }
 }

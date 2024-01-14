@@ -1,16 +1,22 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Navigation
 import Html exposing (..)
+import Html.Attributes exposing (class, href, src)
+import Url
 
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
         , view = view
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions =
+            \_ -> Sub.none
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
@@ -18,53 +24,83 @@ main =
 -- MODEL
 
 
-type Model
-    = Error
-    | Loading
-    | Success
+type alias Model =
+    { url : Url.Url
+    , key : Navigation.Key
+    }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Loading, Cmd.none )
+init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init _ url key =
+    ( Model url key, Cmd.none )
 
 
 
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg _ =
-    case msg of
-        GotData ->
-            ( Success, Cmd.none )
-
-
 type Msg
-    = GotData
+    = LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Navigation.pushUrl model.key (Url.toString url) )
 
--- SUBSCRIPTIONS
+                Browser.External href ->
+                    ( model, Navigation.load href )
 
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+        UrlChanged url ->
+            ( { model | url = url }
+            , Cmd.none
+            )
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    case model of
-        Error ->
-            div [] [ text "Error!" ]
+view : Model -> Browser.Document Msg
+view _ =
+    { title = "Frontend Quiz App"
+    , body =
+        [ viewHeader
+        , viewMain
+        ]
+    }
 
-        Loading ->
-            div [] [ text "Loading..." ]
 
-        Success ->
-            div [] [ text "Success." ]
+viewHeader : Html Msg
+viewHeader =
+    header [ class "container page-header" ]
+        [ nav [] []
+        ]
+
+
+viewMain : Html Msg
+viewMain =
+    main_ [ class "container" ]
+        [ header []
+            [ h1 []
+                [ span [] [ text "Welcome to the" ]
+                , text "Frontend Quiz!"
+                ]
+            , p []
+                [ text "Pick a subject to get started." ]
+            ]
+        , ul []
+            [ li []
+                [ a [ href "/html" ] [ img [ src "/assets/images/icon-html.svg" ] [], text "HTML" ] ]
+            , li []
+                [ a [ href "/css" ] [ img [ src "/assets/images/icon-css.svg" ] [], text "CSS" ] ]
+            , li []
+                [ a [ href "/javascript" ] [ img [ src "/assets/images/icon-js.svg" ] [], text "JavaScript" ] ]
+            , li []
+                [ a [ href "/accessibility" ] [ img [ src "/assets/images/icon-accessibility.svg" ] [], text "Accessibility" ] ]
+            ]
+        ]
