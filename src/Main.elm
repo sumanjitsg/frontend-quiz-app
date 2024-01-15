@@ -64,6 +64,38 @@ toRoute url =
 
 
 
+-- QUIZ TOPIC
+
+
+type alias Topic =
+    { path : String
+    , imgSrc : String
+    , name : String
+    }
+
+
+topics : List Topic
+topics =
+    [ { path = "/html"
+      , imgSrc = "/assets/images/icon-html.svg"
+      , name = "HTML"
+      }
+    , { path = "/css"
+      , imgSrc = "/assets/images/icon-css.svg"
+      , name = "CSS"
+      }
+    , { path = "/javascript"
+      , imgSrc = "/assets/images/icon-js.svg"
+      , name = "JavaScript"
+      }
+    , { path = "/accessibility"
+      , imgSrc = "/assets/images/icon-accessibility.svg"
+      , name = "Accessibility"
+      }
+    ]
+
+
+
 -- UPDATE
 
 
@@ -128,53 +160,22 @@ viewMain =
             ]
         , ul
             [ class "list text--medium" ]
-            [ li []
-                [ a
-                    [ href "/html"
-                    , class "list__item"
-                    ]
-                    [ img
-                        [ src <| asset "/assets/images/icon-html.svg" ]
-                        []
-                    , span []
-                        [ text "HTML" ]
-                    ]
-                ]
-            , li []
-                [ a
-                    [ href "/css"
-                    , class "list__item"
-                    ]
-                    [ img
-                        [ src <| asset "/assets/images/icon-css.svg" ]
-                        []
-                    , span []
-                        [ text "CSS" ]
-                    ]
-                ]
-            , li []
-                [ a
-                    [ href "/javascript"
-                    , class "list__item"
-                    ]
-                    [ img
-                        [ src <| asset "/assets/images/icon-js.svg" ]
-                        []
-                    , span []
-                        [ text "JavaScript" ]
-                    ]
-                ]
-            , li []
-                [ a
-                    [ href "/accessibility"
-                    , class "list__item"
-                    ]
-                    [ img
-                        [ src <| asset "/assets/images/icon-accessibility.svg" ]
-                        []
-                    , span []
-                        [ text "Accessibility" ]
-                    ]
-                ]
-            ]
+            -- List of quiz topic links
+            (List.map
+                (\topic ->
+                    li []
+                        [ a
+                            [ href topic.path
+                            , class "list__item"
+                            ]
+                            [ img
+                                [ src <| asset topic.imgSrc ]
+                                []
+                            , span []
+                                [ text topic.name ]
+                            ]
+                        ]
+                )
+                topics
+            )
         ]
