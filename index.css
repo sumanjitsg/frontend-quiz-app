@@ -128,7 +128,7 @@ main > * {
   width: 2.5rem;
 }
 
-@media (width >= 64rem /* 1024px */) {
+@media (width >= 90rem) {
   .container {
     padding-inline: 8.75rem;
   }
@@ -191,7 +191,7 @@ main > * {
   color: var(--light-bluish);
 }
 
-@media (width >= 64rem /* 1024px */) {
+@media (width >= 90rem) {
   .text--heading {
     font-size: 4rem;
   }
