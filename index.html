@@ -4,10 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/png" sizes="32x32" href="/elm.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/images/elm.png"
+    />
+    <link rel="stylesheet" href="index.css" />
+    <script src="dist/elm.js"></script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/index.js"></script>
+    <script>
+      Elm.Main.init({ node: document.getElementById("root") });
+    </script>
   </body>
 </html>

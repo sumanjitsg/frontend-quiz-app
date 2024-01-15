@@ -158,24 +158,25 @@ viewMain =
             , p [ class "text--italic" ]
                 [ text "Pick a subject to get started." ]
             ]
+
+        -- List of quiz topics
         , ul
             [ class "list text--medium" ]
-            -- List of quiz topic links
-            (List.map
-                (\topic ->
-                    li []
-                        [ a
-                            [ href topic.path
-                            , class "list__item"
-                            ]
-                            [ img
-                                [ src <| asset topic.imgSrc ]
-                                []
-                            , span []
-                                [ text topic.name ]
-                            ]
-                        ]
-                )
-                topics
-            )
+            (List.map (\topic -> viewTopic topic) topics)
+        ]
+
+
+viewTopic : Topic -> Html Msg
+viewTopic topic =
+    li []
+        [ a
+            [ href topic.path
+            , class "list__item"
+            ]
+            [ img
+                [ src <| topic.imgSrc ]
+                []
+            , span []
+                [ text topic.name ]
+            ]
         ]
