@@ -116,12 +116,15 @@ main > * {
 .list__item {
   padding: 0.75rem;
   background-color: var(--navy);
+}
+
+.topic-info {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.list__item > img {
+.topic-info > img {
   width: 2.5rem;
 }
 
@@ -152,10 +155,17 @@ main > * {
 
   .list__item {
     padding: 1.25rem;
+  }
+
+  .topic-info {
     gap: 2rem;
   }
 
-  .list__item > img {
+  .body__header .topic-info {
+    gap: 1.5rem;
+  }
+
+  .topic-info > img {
     width: 3.5rem;
   }
 }

@@ -74,6 +74,17 @@ type alias Topic =
     }
 
 
+toTopic : String -> Maybe Topic
+toTopic topicName =
+    let
+        path =
+            "/" ++ String.toLower topicName
+    in
+    topics
+        |> List.filter (\topic -> topic.path == path)
+        |> List.head
+
+
 topics : List Topic
 topics =
     [ { path = "/html"
@@ -130,17 +141,37 @@ update msg model =
 
 
 view : Model -> Browser.Document Msg
-view _ =
+view { route } =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader, viewMain ]
+    , body = [ viewHeader route, viewMain ]
     }
 
 
-viewHeader : Html Msg
-viewHeader =
+viewHeader : Route -> Html Msg
+viewHeader route =
     header
         [ class "container body__header" ]
-        [ nav [] [] ]
+        [ nav []
+            [ case route of
+                HomePage ->
+                    text ""
+
+                TopicPage topicName ->
+                    case toTopic topicName of
+                        Just topic ->
+                            div
+                                [ class "topic-info text--medium" ]
+                                [ img
+                                    [ src topic.imgSrc ]
+                                    []
+                                , span []
+                                    [ text topic.name ]
+                                ]
+
+                        Nothing ->
+                            text ""
+            ]
+        ]
 
 
 viewMain : Html Msg
@@ -162,21 +193,21 @@ viewMain =
         -- List of quiz topics
         , ul
             [ class "list text--medium" ]
-            (List.map (\topic -> viewTopic topic) topics)
-        ]
-
-
-viewTopic : Topic -> Html Msg
-viewTopic topic =
-    li []
-        [ a
-            [ href topic.path
-            , class "list__item"
-            ]
-            [ img
-                [ src <| topic.imgSrc ]
-                []
-            , span []
-                [ text topic.name ]
-            ]
+            (List.map
+                (\topic ->
+                    li []
+                        [ a
+                            [ href topic.path
+                            , class "list__item topic-info"
+                            ]
+                            [ img
+                                [ src topic.imgSrc ]
+                                []
+                            , span []
+                                [ text topic.name ]
+                            ]
+                        ]
+                )
+                topics
+            )
         ]
