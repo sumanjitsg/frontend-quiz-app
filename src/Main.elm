@@ -107,7 +107,7 @@ view _ =
 viewHeader : Html Msg
 viewHeader =
     header
-        [ class "container page-header" ]
+        [ class "container body__header" ]
         [ nav [] [] ]
 
 
@@ -115,37 +115,65 @@ viewMain : Html Msg
 viewMain =
     main_
         [ class "container" ]
-        [ header []
-            [ h1 []
-                [ span [] [ text "Welcome to the" ]
-                , text "Frontend Quiz!"
+        [ header
+            [ class "main__header" ]
+            [ h1 [ class "text--heading" ]
+                [ div []
+                    [ text "Welcome to the" ]
+                , div []
+                    [ text "Frontend Quiz!" ]
                 ]
-            , p []
+            , p [ class "text--italic" ]
                 [ text "Pick a subject to get started." ]
             ]
-        , ul []
+        , ul
+            [ class "list text--medium" ]
             [ li []
-                [ a [ href "/html" ]
-                    [ img [ src <| asset "/assets/images/icon-html.svg" ] []
-                    , text "HTML"
+                [ a
+                    [ href "/html"
+                    , class "list__item"
+                    ]
+                    [ img
+                        [ src <| asset "/assets/images/icon-html.svg" ]
+                        []
+                    , span []
+                        [ text "HTML" ]
                     ]
                 ]
             , li []
-                [ a [ href "/css" ]
-                    [ img [ src <| asset "/assets/images/icon-css.svg" ] []
-                    , text "CSS"
+                [ a
+                    [ href "/css"
+                    , class "list__item"
+                    ]
+                    [ img
+                        [ src <| asset "/assets/images/icon-css.svg" ]
+                        []
+                    , span []
+                        [ text "CSS" ]
                     ]
                 ]
             , li []
-                [ a [ href "/javascript" ]
-                    [ img [ src <| asset "/assets/images/icon-js.svg" ] []
-                    , text "JavaScript"
+                [ a
+                    [ href "/javascript"
+                    , class "list__item"
+                    ]
+                    [ img
+                        [ src <| asset "/assets/images/icon-js.svg" ]
+                        []
+                    , span []
+                        [ text "JavaScript" ]
                     ]
                 ]
             , li []
-                [ a [ href "/accessibility" ]
-                    [ img [ src <| asset "/assets/images/icon-accessibility.svg" ] []
-                    , text "Accessibility"
+                [ a
+                    [ href "/accessibility"
+                    , class "list__item"
+                    ]
+                    [ img
+                        [ src <| asset "/assets/images/icon-accessibility.svg" ]
+                        []
+                    , span []
+                        [ text "Accessibility" ]
                     ]
                 ]
             ]
