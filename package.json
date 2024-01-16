@@ -1,15 +1,14 @@
 {
-  "name": "quiz-app",
+  "name": "frontend-quiz-app",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build"
+    "build": "npx elm make --output dist/elm.js src/Main.elm",
+    "dev": "npx elm-live src/Main.elm --path-to-elm=./node_modules/.bin/elm --start-page=index.html --port=3000 --hot --pushstate -- --output=./dist/elm.js --debug"
   },
   "license": "MIT",
   "devDependencies": {
     "elm": "^0.19.1-6",
     "elm-format": "^0.8.7",
-    "vite": "^5.0.11",
-    "vite-plugin-elm": "^2.9.0"
+    "elm-live": "^4.0.2"
   }
 }

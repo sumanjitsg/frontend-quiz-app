@@ -64,6 +64,49 @@ toRoute url =
 
 
 
+-- QUIZ TOPIC
+
+
+type alias Topic =
+    { path : String
+    , imgSrc : String
+    , name : String
+    }
+
+
+toTopic : String -> Maybe Topic
+toTopic topicName =
+    let
+        path =
+            "/" ++ String.toLower topicName
+    in
+    topics
+        |> List.filter (\topic -> topic.path == path)
+        |> List.head
+
+
+topics : List Topic
+topics =
+    [ { path = "/html"
+      , imgSrc = "/assets/images/icon-html.svg"
+      , name = "HTML"
+      }
+    , { path = "/css"
+      , imgSrc = "/assets/images/icon-css.svg"
+      , name = "CSS"
+      }
+    , { path = "/javascript"
+      , imgSrc = "/assets/images/icon-js.svg"
+      , name = "JavaScript"
+      }
+    , { path = "/accessibility"
+      , imgSrc = "/assets/images/icon-accessibility.svg"
+      , name = "Accessibility"
+      }
+    ]
+
+
+
 -- UPDATE
 
 
@@ -98,55 +141,73 @@ update msg model =
 
 
 view : Model -> Browser.Document Msg
-view _ =
+view { route } =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader, viewMain ]
+    , body = [ viewHeader route, viewMain ]
     }
 
 
-viewHeader : Html Msg
-viewHeader =
+viewHeader : Route -> Html Msg
+viewHeader route =
     header
-        [ class "container page-header" ]
-        [ nav [] [] ]
+        [ class "container body__header" ]
+        [ nav []
+            [ case route of
+                HomePage ->
+                    text ""
+
+                TopicPage topicName ->
+                    case toTopic topicName of
+                        Just topic ->
+                            div
+                                [ class "topic-info text--medium" ]
+                                [ img
+                                    [ src topic.imgSrc ]
+                                    []
+                                , span []
+                                    [ text topic.name ]
+                                ]
+
+                        Nothing ->
+                            text ""
+            ]
+        ]
 
 
 viewMain : Html Msg
 viewMain =
     main_
         [ class "container" ]
-        [ header []
-            [ h1 []
-                [ span [] [ text "Welcome to the" ]
-                , text "Frontend Quiz!"
+        [ header
+            [ class "main__header" ]
+            [ h1 [ class "text--heading" ]
+                [ div []
+                    [ text "Welcome to the" ]
+                , div []
+                    [ text "Frontend Quiz!" ]
                 ]
-            , p []
+            , p [ class "text--italic" ]
                 [ text "Pick a subject to get started." ]
             ]
-        , ul []
-            [ li []
-                [ a [ href "/html" ]
-                    [ img [ src <| asset "/assets/images/icon-html.svg" ] []
-                    , text "HTML"
-                    ]
-                ]
-            , li []
-                [ a [ href "/css" ]
-                    [ img [ src <| asset "/assets/images/icon-css.svg" ] []
-                    , text "CSS"
-                    ]
-                ]
-            , li []
-                [ a [ href "/javascript" ]
-                    [ img [ src <| asset "/assets/images/icon-js.svg" ] []
-                    , text "JavaScript"
-                    ]
-                ]
-            , li []
-                [ a [ href "/accessibility" ]
-                    [ img [ src <| asset "/assets/images/icon-accessibility.svg" ] []
-                    , text "Accessibility"
-                    ]
-                ]
-            ]
+
+        -- List of quiz topics
+        , ul
+            [ class "list text--medium" ]
+            (List.map
+                (\topic ->
+                    li []
+                        [ a
+                            [ href topic.path
+                            , class "list__item topic-info"
+                            ]
+                            [ img
+                                [ src topic.imgSrc ]
+                                []
+                            , span []
+                                [ text topic.name ]
+                            ]
+                        ]
+                )
+                topics
+            )
         ]

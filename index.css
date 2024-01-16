@@ -74,108 +74,133 @@ img {
 
 /* LAYOUT */
 
+.container {
+  padding-inline: 1.5rem;
+}
+
+.body__header {
+  padding-block: 1rem;
+}
+
 main {
-  padding-top: 2rem;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 2.5rem;
 }
 
 main > * {
-  flex-basis: 100%;
+  flex-grow: 1;
 }
 
-main > header > * + * {
+.main__header {
+  padding-top: 2rem;
+}
+
+.main__header > :not(:first-child) {
   margin-top: 1rem;
 }
 
-h1 {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.text--heading > * + * {
+  margin-top: 0.5rem;
 }
 
-a {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-h1 > span:first-child {
-  font-weight: 300;
-}
-
-li {
+.list > li {
   border-radius: 0.75rem;
   overflow: hidden;
 }
 
-li + li {
+.list > li:not(:first-child) {
   margin-top: 0.75rem;
 }
 
-a {
+.list__item {
   padding: 0.75rem;
   background-color: var(--navy);
 }
 
-a > img {
+.topic-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topic-info > img {
   width: 2.5rem;
 }
 
-@media (width >= 64rem /* 1024px */) {
-  main {
-    padding-top: 0;
-    flex-direction: row;
-    gap: 8rem;
+@media (width >= 90rem) {
+  .container {
+    padding-inline: 8.75rem;
   }
 
-  main > header > * + * {
+  .body__header {
+    padding-block: 5rem;
+  }
+
+  main {
+    flex-direction: row;
+  }
+
+  .main__header {
+    padding-top: 0;
+  }
+
+  .main__header > * + * {
     margin-top: 3rem;
   }
 
-  a > img {
+  .list > li:not(:first-child) {
+    margin-top: 1.5rem;
+  }
+
+  .list__item {
+    padding: 1.25rem;
+  }
+
+  .topic-info {
+    gap: 2rem;
+  }
+
+  .body__header .topic-info {
+    gap: 1.5rem;
+  }
+
+  .topic-info > img {
     width: 3.5rem;
   }
 }
 
-.container {
-  padding: 0 1.5rem;
-}
+/* CONTENT */
 
-.page-header {
-  padding-block: 1rem;
-}
-
-@media (width >= 64rem /* 1024px */) {
-  .container {
-    padding: 0 8.75rem;
-  }
-
-  .page-header {
-    padding-block: 5rem;
-  }
-}
-
-/* Content */
-
-h1 {
+.text--heading {
   font-size: 2.5rem;
 }
 
-p {
+.text--heading > :first-child {
+  font-weight: 300;
+}
+
+.text--medium {
+  font-size: 1.125rem;
+}
+
+.text--italic {
   font-size: 0.875rem;
   font-style: italic;
   font-weight: 400;
   color: var(--light-bluish);
 }
 
-@media (width >= 64rem /* 1024px */) {
-  h1 {
+@media (width >= 90rem) {
+  .text--heading {
     font-size: 4rem;
   }
 
-  p {
+  .text--medium {
+    font-size: 1.75rem;
+  }
+
+  .text--italic {
     font-size: 1.25rem;
   }
 }
