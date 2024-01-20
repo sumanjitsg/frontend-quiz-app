@@ -6,9 +6,9 @@ import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
 import Http
-import Json.Decode as Decode exposing (Decoder)
-import Url
-import Url.Parser as Parser exposing (Parser)
+import Json.Decode as Json exposing (Decoder)
+import Url exposing (Url)
+import Url.Parser as Url exposing (Parser)
 
 
 main : Program () Model Msg
@@ -33,7 +33,7 @@ type alias Model =
     }
 
 
-init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
     ( Model (toRoute url) key, getQuizzes )
 
@@ -49,15 +49,15 @@ type Route
 
 routeParser : Parser (Route -> a) a
 routeParser =
-    Parser.oneOf
-        [ Parser.map HomePage Parser.top
-        , Parser.map TopicPage Parser.string
+    Url.oneOf
+        [ Url.map HomePage Url.top
+        , Url.map TopicPage Url.string
         ]
 
 
-toRoute : Url.Url -> Route
+toRoute : Url -> Route
 toRoute url =
-    case Parser.parse routeParser url of
+    case Url.parse routeParser url of
         Just route ->
             route
 
@@ -70,7 +70,7 @@ toRoute url =
 
 
 type Msg
-    = UrlChanged Url.Url
+    = UrlChanged Url
     | LinkClicked Browser.UrlRequest
     | ReceivedQuizzes (Result Http.Error Quizzes)
 
@@ -216,36 +216,36 @@ type alias Question =
 
 responseDecoder : Decoder Quizzes
 responseDecoder =
-    Decode.field "quizzes" quizzesDecoder
+    Json.field "quizzes" quizzesDecoder
 
 
 quizzesDecoder : Decoder Quizzes
 quizzesDecoder =
-    Decode.map Dict.fromList <|
-        Decode.list quizDecoder
+    Json.map Dict.fromList <|
+        Json.list quizDecoder
 
 
 quizDecoder : Decoder ( String, List Question )
 quizDecoder =
-    Decode.map2
+    Json.map2
         (\topicName questions ->
             ( topicName, questions )
         )
-        (Decode.field "title" Decode.string)
-        (Decode.field "questions" <|
-            Decode.list questionDecoder
+        (Json.field "title" Json.string)
+        (Json.field "questions" <|
+            Json.list questionDecoder
         )
 
 
 questionDecoder : Decoder Question
 questionDecoder =
-    Decode.map3
+    Json.map3
         Question
-        (Decode.field "question" Decode.string)
-        (Decode.field "options" <|
-            Decode.list Decode.string
+        (Json.field "question" Json.string)
+        (Json.field "options" <|
+            Json.list Json.string
         )
-        (Decode.field "answer" Decode.string)
+        (Json.field "answer" Json.string)
 
 
 type alias Topic =
