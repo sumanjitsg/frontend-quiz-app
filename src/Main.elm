@@ -2,11 +2,13 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Navigation
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
+import Http
+import Json.Decode as Decode exposing (Decoder)
 import Url
 import Url.Parser as Parser exposing (Parser)
-import VitePluginHelper exposing (asset)
 
 
 main : Program () Model Msg
@@ -33,7 +35,7 @@ type alias Model =
 
 init : () -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model (toRoute url) key, Cmd.none )
+    ( Model (toRoute url) key, getQuizzes )
 
 
 
@@ -64,55 +66,13 @@ toRoute url =
 
 
 
--- QUIZ TOPIC
-
-
-type alias Topic =
-    { path : String
-    , imgSrc : String
-    , name : String
-    }
-
-
-toTopic : String -> Maybe Topic
-toTopic topicName =
-    let
-        path =
-            "/" ++ String.toLower topicName
-    in
-    topics
-        |> List.filter (\topic -> topic.path == path)
-        |> List.head
-
-
-topics : List Topic
-topics =
-    [ { path = "/html"
-      , imgSrc = "/assets/images/icon-html.svg"
-      , name = "HTML"
-      }
-    , { path = "/css"
-      , imgSrc = "/assets/images/icon-css.svg"
-      , name = "CSS"
-      }
-    , { path = "/javascript"
-      , imgSrc = "/assets/images/icon-js.svg"
-      , name = "JavaScript"
-      }
-    , { path = "/accessibility"
-      , imgSrc = "/assets/images/icon-accessibility.svg"
-      , name = "Accessibility"
-      }
-    ]
-
-
-
 -- UPDATE
 
 
 type Msg
     = UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
+    | ReceivedQuizzes (Result Http.Error Quizzes)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -122,7 +82,8 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Navigation.pushUrl model.key <| Url.toString url
+                    , Navigation.pushUrl model.key <|
+                        Url.toString url
                     )
 
                 Browser.External href ->
@@ -135,6 +96,14 @@ update msg model =
             , Cmd.none
             )
 
+        ReceivedQuizzes result ->
+            case result of
+                Ok _ ->
+                    ( model, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
 
 
 -- VIEW
@@ -143,7 +112,7 @@ update msg model =
 view : Model -> Browser.Document Msg
 view { route } =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader route, viewMain ]
+    , body = [ viewHeader route, viewMain route ]
     }
 
 
@@ -162,10 +131,10 @@ viewHeader route =
                             div
                                 [ class "topic-info text--medium" ]
                                 [ img
-                                    [ src topic.imgSrc ]
+                                    [ src topic.logoSrc ]
                                     []
                                 , span []
-                                    [ text topic.name ]
+                                    [ text topic.displayName ]
                                 ]
 
                         Nothing ->
@@ -174,40 +143,145 @@ viewHeader route =
         ]
 
 
-viewMain : Html Msg
-viewMain =
+viewMain : Route -> Html Msg
+viewMain route =
     main_
         [ class "container" ]
-        [ header
-            [ class "main__header" ]
-            [ h1 [ class "text--heading" ]
-                [ div []
-                    [ text "Welcome to the" ]
-                , div []
-                    [ text "Frontend Quiz!" ]
-                ]
-            , p [ class "text--italic" ]
-                [ text "Pick a subject to get started." ]
-            ]
-
-        -- List of quiz topics
-        , ul
-            [ class "list text--medium" ]
-            (List.map
-                (\topic ->
-                    li []
-                        [ a
-                            [ href topic.path
-                            , class "list__item topic-info"
-                            ]
-                            [ img
-                                [ src topic.imgSrc ]
-                                []
-                            , span []
-                                [ text topic.name ]
-                            ]
+        (case route of
+            HomePage ->
+                [ header
+                    [ class "main__header" ]
+                    [ h1 [ class "text--heading" ]
+                        [ div []
+                            [ text "Welcome to the" ]
+                        , div []
+                            [ text "Frontend Quiz!" ]
                         ]
-                )
-                topics
-            )
-        ]
+                    , p [ class "text--italic" ]
+                        [ text "Pick a subject to get started." ]
+                    ]
+
+                -- List of quiz topics
+                , ul
+                    [ class "list text--medium" ]
+                    (List.map
+                        (\topic ->
+                            li []
+                                [ a
+                                    [ href topic.urlPath
+                                    , class "list__item topic-info"
+                                    ]
+                                    [ img
+                                        [ src topic.logoSrc ]
+                                        []
+                                    , span []
+                                        [ text topic.displayName ]
+                                    ]
+                                ]
+                        )
+                        topics
+                    )
+                ]
+
+            TopicPage _ ->
+                [ text "" ]
+        )
+
+
+
+-- HTTP
+
+
+getQuizzes =
+    Http.get
+        { url = "/data.json"
+        , expect = Http.expectJson ReceivedQuizzes responseDecoder
+        }
+
+
+
+-- DECODERS
+
+
+type alias Quizzes =
+    Dict String (List Question)
+
+
+type alias Question =
+    { title : String
+    , options : List String
+    , answer : String
+    }
+
+
+responseDecoder : Decoder Quizzes
+responseDecoder =
+    Decode.field "quizzes" quizzesDecoder
+
+
+quizzesDecoder : Decoder Quizzes
+quizzesDecoder =
+    Decode.map Dict.fromList <|
+        Decode.list quizDecoder
+
+
+quizDecoder : Decoder ( String, List Question )
+quizDecoder =
+    Decode.map2
+        (\topicName questions ->
+            ( topicName, questions )
+        )
+        (Decode.field "title" Decode.string)
+        (Decode.field "questions" <|
+            Decode.list questionDecoder
+        )
+
+
+questionDecoder : Decoder Question
+questionDecoder =
+    Decode.map3
+        Question
+        (Decode.field "question" Decode.string)
+        (Decode.field "options" <|
+            Decode.list Decode.string
+        )
+        (Decode.field "answer" Decode.string)
+
+
+type alias Topic =
+    { urlPath : String
+    , logoSrc : String
+    , displayName : String
+    }
+
+
+toTopic : String -> Maybe Topic
+toTopic topicName =
+    let
+        urlPath =
+            "/" ++ String.toLower topicName
+    in
+    topics
+        |> List.filter (\topic -> topic.urlPath == urlPath)
+        |> List.head
+
+
+topics : List Topic
+topics =
+    [ { urlPath = "/html"
+      , logoSrc = "/assets/images/icon-html.svg"
+      , displayName = "HTML"
+      }
+    , { urlPath = "/css"
+      , logoSrc = "/assets/images/icon-css.svg"
+      , displayName = "CSS"
+      }
+    , { urlPath = "/javascript"
+      , logoSrc = "/assets/images/icon-js.svg"
+      , displayName = "JavaScript"
+      }
+    , { urlPath = "/accessibility"
+      , logoSrc = "/assets/images/icon-accessibility.svg"
+      , displayName = "Accessibility"
+      }
+    ]
