@@ -30,12 +30,19 @@ main =
 type alias Model =
     { route : Route
     , key : Navigation.Key
+    , quizzes : DataState
     }
+
+
+type DataState
+    = Loading
+    | Error
+    | Success Quizzes
 
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model (toRoute url) key, getQuizzes )
+    ( Model (toRoute url) key Loading, getQuizzes )
 
 
 
@@ -98,11 +105,13 @@ update msg model =
 
         ReceivedQuizzes result ->
             case result of
-                Ok _ ->
-                    ( model, Cmd.none )
+                Ok quizzes ->
+                    ( { model | quizzes = Success quizzes }
+                    , Cmd.none
+                    )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( { model | quizzes = Error }, Cmd.none )
 
 
 
