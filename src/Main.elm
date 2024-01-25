@@ -243,10 +243,10 @@ viewMain model =
                 in
                 case maybeGameState of
                     Just gameState ->
-                        let
-                            _ =
-                                Debug.log "game state" gameState
-                        in
+                        -- let
+                        --     _ =
+                        --         Debug.log "game state" gameState
+                        -- in
                         [ div []
                             [ p [ class "text--italic" ]
                                 [ text ("Question " ++ String.fromInt gameState.currentQuestion ++ " of 10") ]
