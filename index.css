@@ -78,53 +78,52 @@ img {
   padding-inline: 1.5rem;
 }
 
-.body__header {
+.header {
   padding-block: 1rem;
+  min-height: 3.5rem;
 }
 
 main {
   display: flex;
   flex-wrap: wrap;
   gap: 2.5rem;
+  padding-top: 2rem;
 }
 
 main > * {
   flex-grow: 1;
 }
 
-.main__header {
+main .header {
   padding-top: 2rem;
 }
 
-.main__header > :not(:first-child) {
+main .header > * + * {
   margin-top: 1rem;
 }
 
-.text--heading > * + * {
-  margin-top: 0.5rem;
+.list > * + * {
+  margin-top: 0.75rem;
 }
 
-.list > li {
+.list-item {
   border-radius: 0.75rem;
   overflow: hidden;
 }
 
-.list > li:not(:first-child) {
-  margin-top: 0.75rem;
-}
-
-.list__item {
+.list-item > * {
   padding: 0.75rem;
   background-color: var(--navy);
 }
 
-.topic-info {
+.list-item > *,
+.header__image-text {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.topic-info > img {
+.list-item img {
   width: 2.5rem;
 }
 
@@ -133,51 +132,66 @@ main > * {
     padding-inline: 8.75rem;
   }
 
-  .body__header {
+  .header {
     padding-block: 5rem;
+    min-height: 14rem;
+  }
+
+  .header__image-text {
+    gap: 1.5rem;
   }
 
   main {
     flex-direction: row;
-  }
-
-  .main__header {
     padding-top: 0;
   }
 
-  .main__header > * + * {
+  main .header {
+    padding-top: 0;
+  }
+
+  main .header > * + * {
     margin-top: 3rem;
   }
 
-  .list > li:not(:first-child) {
+  .list > * + * {
     margin-top: 1.5rem;
   }
 
-  .list__item {
+  .list-item > * {
     padding: 1.25rem;
   }
 
-  .topic-info {
+  .list-item > * {
     gap: 2rem;
   }
 
-  .body__header .topic-info {
-    gap: 1.5rem;
-  }
-
-  .topic-info > img {
+  .list-item img {
     width: 3.5rem;
   }
 }
 
 /* CONTENT */
 
-.text--heading {
+.text--xl {
   font-size: 2.5rem;
 }
 
-.text--heading > :first-child {
+.text--xl > * + * {
+  margin-top: 0.5rem;
+}
+
+.text--xl > :first-child {
   font-weight: 300;
+}
+
+.text--large {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.text--large {
+  margin-top: 0.75rem;
 }
 
 .text--medium {
@@ -192,8 +206,16 @@ main > * {
 }
 
 @media (width >= 90rem) {
-  .text--heading {
+  .text--xl {
     font-size: 4rem;
+  }
+
+  .text--large {
+    font-size: 2.25rem;
+  }
+
+  .text--large {
+    margin-top: 1.69rem;
   }
 
   .text--medium {

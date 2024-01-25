@@ -6,9 +6,9 @@ import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
 import Http
-import Json.Decode as Json exposing (Decoder)
+import Json.Decode as Json
 import Url exposing (Url)
-import Url.Parser as Url exposing (Parser)
+import Url.Parser as Url
 
 
 main : Program () Model Msg
@@ -30,7 +30,7 @@ main =
 type alias Model =
     { route : Route
     , key : Navigation.Key
-    , quizzes : DataState
+    , data : DataState
     }
 
 
@@ -54,7 +54,42 @@ type Route
     | TopicPage String
 
 
-routeParser : Parser (Route -> a) a
+
+-- toGameStateFromString : String -> Maybe GameState
+-- toGameStateFromString topicName =
+--     case toTopic topicName of
+--         Just topic ->
+--             toGameState topic quizzes
+--         _ ->
+--             Nothing
+
+
+toGameState : Topic -> Quizzes -> Maybe GameState
+toGameState topic quizzes =
+    let
+        maybeQuestions =
+            Dict.get topic.displayName quizzes
+    in
+    case maybeQuestions of
+        Just questions ->
+            Just
+                { questions = questions
+                , currentScore = 0
+                , currentQuestion = 1
+                }
+
+        Nothing ->
+            Nothing
+
+
+type alias GameState =
+    { questions : List Question
+    , currentScore : Int
+    , currentQuestion : Int
+    }
+
+
+routeParser : Url.Parser (Route -> a) a
 routeParser =
     Url.oneOf
         [ Url.map HomePage Url.top
@@ -106,12 +141,12 @@ update msg model =
         ReceivedQuizzes result ->
             case result of
                 Ok quizzes ->
-                    ( { model | quizzes = Success quizzes }
+                    ( { model | data = Success quizzes }
                     , Cmd.none
                     )
 
                 Err _ ->
-                    ( { model | quizzes = Error }, Cmd.none )
+                    ( { model | data = Error }, Cmd.none )
 
 
 
@@ -119,16 +154,16 @@ update msg model =
 
 
 view : Model -> Browser.Document Msg
-view { route } =
+view model =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader route, viewMain route ]
+    , body = [ viewHeader model.route, viewMain model ]
     }
 
 
 viewHeader : Route -> Html Msg
 viewHeader route =
     header
-        [ class "container body__header" ]
+        [ class "container header" ]
         [ nav []
             [ case route of
                 HomePage ->
@@ -138,7 +173,7 @@ viewHeader route =
                     case toTopic topicName of
                         Just topic ->
                             div
-                                [ class "topic-info text--medium" ]
+                                [ class "header__image-text text--medium" ]
                                 [ img
                                     [ src topic.logoSrc ]
                                     []
@@ -152,15 +187,16 @@ viewHeader route =
         ]
 
 
-viewMain : Route -> Html Msg
-viewMain route =
+viewMain : Model -> Html Msg
+viewMain model =
     main_
         [ class "container" ]
-        (case route of
+    <|
+        case model.route of
             HomePage ->
                 [ header
-                    [ class "main__header" ]
-                    [ h1 [ class "text--heading" ]
+                    [ class "header" ]
+                    [ h1 [ class "text--xl" ]
                         [ div []
                             [ text "Welcome to the" ]
                         , div []
@@ -173,13 +209,12 @@ viewMain route =
                 -- List of quiz topics
                 , ul
                     [ class "list text--medium" ]
-                    (List.map
+                  <|
+                    List.map
                         (\topic ->
-                            li []
+                            li [ class "list-item" ]
                                 [ a
-                                    [ href topic.urlPath
-                                    , class "list__item topic-info"
-                                    ]
+                                    [ href topic.urlPath ]
                                     [ img
                                         [ src topic.logoSrc ]
                                         []
@@ -189,12 +224,60 @@ viewMain route =
                                 ]
                         )
                         topics
-                    )
                 ]
 
-            TopicPage _ ->
-                [ text "" ]
-        )
+            TopicPage topicName ->
+                let
+                    maybeGameState =
+                        case model.data of
+                            Success quizzes ->
+                                case toTopic topicName of
+                                    Just topic ->
+                                        toGameState topic quizzes
+
+                                    Nothing ->
+                                        Nothing
+
+                            _ ->
+                                Nothing
+                in
+                case maybeGameState of
+                    Just gameState ->
+                        let
+                            _ =
+                                Debug.log "game state" gameState
+                        in
+                        [ div []
+                            [ p [ class "text--italic" ]
+                                [ text ("Question " ++ String.fromInt gameState.currentQuestion ++ " of 10") ]
+                            , p [ class "text--large" ]
+                                [ case List.head gameState.questions of
+                                    Just question ->
+                                        text question.title
+
+                                    Nothing ->
+                                        text ""
+                                ]
+                            ]
+                        , div [ class "list text--medium" ]
+                            [ case List.head gameState.questions of
+                                Just question ->
+                                    ul [ class "list" ] <|
+                                        List.map
+                                            (\option ->
+                                                li [ class "list-item" ]
+                                                    [ div [] [ text option ]
+                                                    ]
+                                            )
+                                            question.options
+
+                                Nothing ->
+                                    text ""
+                            ]
+                        ]
+
+                    Nothing ->
+                        []
 
 
 
@@ -223,18 +306,18 @@ type alias Question =
     }
 
 
-responseDecoder : Decoder Quizzes
+responseDecoder : Json.Decoder Quizzes
 responseDecoder =
     Json.field "quizzes" quizzesDecoder
 
 
-quizzesDecoder : Decoder Quizzes
+quizzesDecoder : Json.Decoder Quizzes
 quizzesDecoder =
     Json.map Dict.fromList <|
         Json.list quizDecoder
 
 
-quizDecoder : Decoder ( String, List Question )
+quizDecoder : Json.Decoder ( String, List Question )
 quizDecoder =
     Json.map2
         (\topicName questions ->
@@ -246,7 +329,7 @@ quizDecoder =
         )
 
 
-questionDecoder : Decoder Question
+questionDecoder : Json.Decoder Question
 questionDecoder =
     Json.map3
         Question
