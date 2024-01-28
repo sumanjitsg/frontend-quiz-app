@@ -11,6 +11,10 @@ import Url exposing (Url)
 import Url.Parser as Url
 
 
+
+-- MAIN
+
+
 main : Program () Model Msg
 main =
     Browser.application
@@ -24,25 +28,19 @@ main =
 
 
 
--- MODEL
+-- INIT
 
 
 type alias Model =
     { route : Route
     , key : Navigation.Key
-    , data : DataState
+    , quiz : Quiz
     }
-
-
-type DataState
-    = Loading
-    | Error
-    | Success Quizzes
 
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model (toRoute url) key Loading, getQuizzes )
+    ( Model (toRoute url) key initialQuiz, getQuizData )
 
 
 
@@ -51,49 +49,24 @@ init _ url key =
 
 type Route
     = HomePage
-    | TopicPage String
-
-
-
--- toGameStateFromString : String -> Maybe GameState
--- toGameStateFromString topicName =
---     case toTopic topicName of
---         Just topic ->
---             toGameState topic quizzes
---         _ ->
---             Nothing
-
-
-toGameState : Topic -> Quizzes -> Maybe GameState
-toGameState topic quizzes =
-    let
-        maybeQuestions =
-            Dict.get topic.displayName quizzes
-    in
-    case maybeQuestions of
-        Just questions ->
-            Just
-                { questions = questions
-                , currentScore = 0
-                , currentQuestion = 1
-                }
-
-        Nothing ->
-            Nothing
-
-
-type alias GameState =
-    { questions : List Question
-    , currentScore : Int
-    , currentQuestion : Int
-    }
+    | TopicPage Topic
 
 
 routeParser : Url.Parser (Route -> a) a
 routeParser =
     Url.oneOf
         [ Url.map HomePage Url.top
-        , Url.map TopicPage Url.string
+        , Url.map TopicPage topicParser
+        ]
+
+
+topicParser : Url.Parser (Topic -> a) a
+topicParser =
+    Url.oneOf
+        [ Url.map Html (Url.s "html")
+        , Url.map Css (Url.s "css")
+        , Url.map JavaScript (Url.s "javascript")
+        , Url.map Accessibility (Url.s "accessibility")
         ]
 
 
@@ -104,6 +77,7 @@ toRoute url =
             route
 
         Nothing ->
+            -- TODO: redirect to HomePage
             HomePage
 
 
@@ -114,7 +88,7 @@ toRoute url =
 type Msg
     = UrlChanged Url
     | LinkClicked Browser.UrlRequest
-    | ReceivedQuizzes (Result Http.Error Quizzes)
+    | ReceivedQuizData (Result Http.Error JsonQuizVault)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,19 +112,36 @@ update msg model =
             , Cmd.none
             )
 
-        ReceivedQuizzes result ->
-            case result of
-                Ok quizzes ->
-                    ( { model | data = Success quizzes }
+        ReceivedQuizData data ->
+            case data of
+                Ok jsonQuizVault ->
+                    let
+                        updatedVault =
+                            updateQuizVault jsonQuizVault model.quiz.vault
+
+                        quiz =
+                            model.quiz
+
+                        updatedQuiz =
+                            { quiz | vault = updatedVault }
+                    in
+                    ( { model | quiz = updatedQuiz }
                     , Cmd.none
                     )
 
                 Err _ ->
-                    ( { model | data = Error }, Cmd.none )
+                    ( model, Cmd.none )
 
 
 
--- VIEW
+-- case data of
+--     Ok jsonQuizVault ->
+--         ( { model | topics = updateQuizVault jsonQuizVault model.topics }
+--         , Cmd.none
+--         )
+--     Err _ ->
+--         ( model, Cmd.none )
+-- TODO: what happens if a route is opened directly?
 
 
 view : Model -> Browser.Document Msg
@@ -170,19 +161,20 @@ viewHeader route =
                     text ""
 
                 TopicPage topicName ->
-                    case toTopic topicName of
-                        Just topic ->
-                            div
-                                [ class "header__image-text text--medium" ]
-                                [ img
-                                    [ src topic.logoSrc ]
-                                    []
-                                , span []
-                                    [ text topic.displayName ]
-                                ]
+                    Debug.todo "topic page"
 
-                        Nothing ->
-                            text ""
+            -- case toTopic topicName of
+            --     Just topic ->
+            --         div
+            --             [ class "header__image-text text--medium" ]
+            --             [ img
+            --                 [ src topic.logoSrc ]
+            --                 []
+            --             , span []
+            --                 [ text topic.displayName ]
+            --             ]
+            --     Nothing ->
+            --         text ""
             ]
         ]
 
@@ -209,85 +201,87 @@ viewMain model =
                 -- List of quiz topics
                 , ul
                     [ class "list text--medium" ]
-                  <|
-                    List.map
+                    (List.map
                         (\topic ->
-                            li [ class "list-item" ]
-                                [ a
-                                    [ href topic.urlPath ]
-                                    [ img
-                                        [ src topic.logoSrc ]
-                                        []
-                                    , span []
-                                        [ text topic.displayName ]
-                                    ]
-                                ]
+                            case Dict.get (toTopicString topic) model.quiz.metadata of
+                                Just topicInfo ->
+                                    li [ class "list-item" ]
+                                        [ a
+                                            [ href topicInfo.urlPath ]
+                                            [ img
+                                                [ src topicInfo.logoSrc ]
+                                                []
+                                            , span []
+                                                [ text topicInfo.displayName ]
+                                            ]
+                                        ]
+
+                                Nothing ->
+                                    -- TODO: handle this case
+                                    text ""
                         )
-                        topics
+                        model.quiz.topics
+                    )
                 ]
 
             TopicPage topicName ->
-                let
-                    maybeGameState =
-                        case model.data of
-                            Success quizzes ->
-                                case toTopic topicName of
-                                    Just topic ->
-                                        toGameState topic quizzes
-
-                                    Nothing ->
-                                        Nothing
-
-                            _ ->
-                                Nothing
-                in
-                case maybeGameState of
-                    Just gameState ->
-                        -- let
-                        --     _ =
-                        --         Debug.log "game state" gameState
-                        -- in
-                        [ div []
-                            [ p [ class "text--italic" ]
-                                [ text ("Question " ++ String.fromInt gameState.currentQuestion ++ " of 10") ]
-                            , p [ class "text--large" ]
-                                [ case List.head gameState.questions of
-                                    Just question ->
-                                        text question.title
-
-                                    Nothing ->
-                                        text ""
-                                ]
-                            ]
-                        , div [ class "list text--medium" ]
-                            [ case List.head gameState.questions of
-                                Just question ->
-                                    ul [ class "list" ] <|
-                                        List.map
-                                            (\option ->
-                                                li [ class "list-item" ]
-                                                    [ div [] [ text option ]
-                                                    ]
-                                            )
-                                            question.options
-
-                                Nothing ->
-                                    text ""
-                            ]
-                        ]
-
-                    Nothing ->
-                        []
+                Debug.todo "topic page"
 
 
 
+-- let
+--     maybeGameState =
+--         case model.data of
+--             Success quizzes ->
+--                 case toTopic topicName of
+--                     Just topic ->
+--                         toGameState topic quizzes
+--                     Nothing ->
+--                         Nothing
+--             _ ->
+--                 Nothing
+-- in
+-- case maybeGameState of
+--     Just gameState ->
+--         -- let
+--         --     _ =
+--         --         Debug.log "game state" gameState
+--         -- in
+--         [ div []
+--             [ p [ class "text--italic" ]
+--                 [ text ("Question " ++ String.fromInt gameState.currentQuestion ++ " of 10") ]
+--             , p [ class "text--large" ]
+--                 [ case List.head gameState.questions of
+--                     Just question ->
+--                         text question.title
+--                     Nothing ->
+--                         text ""
+--                 ]
+--             ]
+--         , div [ class "list text--medium" ]
+--             [ case List.head gameState.questions of
+--                 Just question ->
+--                     ul [ class "list" ] <|
+--                         List.map
+--                             (\option ->
+--                                 li [ class "list-item" ]
+--                                     [ div [] [ text option ]
+--                                     ]
+--                             )
+--                             question.options
+--                 Nothing ->
+--                     text ""
+--             ]
+--         ]
+--     Nothing ->
+--         []
 -- HTTP
 
 
-getQuizzes =
+getQuizData =
     Http.get
         { url = "/data.json"
-        , expect = Http.expectJson ReceivedQuizzes responseDecoder
+        , expect = Http.expectJson ReceivedQuizData responseDecoder
         }
 
 
@@ -295,44 +289,28 @@ getQuizzes =
 -- DECODERS
 
 
-type alias Quizzes =
-    Dict String (List Question)
-
-
-type alias Question =
-    { title : String
-    , options : List String
-    , answer : String
-    }
-
-
-responseDecoder : Json.Decoder Quizzes
+responseDecoder : Json.Decoder JsonQuizVault
 responseDecoder =
-    Json.field "quizzes" quizzesDecoder
+    Json.field "quizzes" quizVaultDecoder
 
 
-quizzesDecoder : Json.Decoder Quizzes
-quizzesDecoder =
-    Json.map Dict.fromList <|
-        Json.list quizDecoder
+quizVaultDecoder : Json.Decoder JsonQuizVault
+quizVaultDecoder =
+    Json.map Dict.fromList <| Json.list topicQuestionsDecoder
 
 
-quizDecoder : Json.Decoder ( String, List Question )
-quizDecoder =
+topicQuestionsDecoder : Json.Decoder ( String, JsonTopicQuestions )
+topicQuestionsDecoder =
     Json.map2
-        (\topicName questions ->
-            ( topicName, questions )
-        )
+        Tuple.pair
         (Json.field "title" Json.string)
-        (Json.field "questions" <|
-            Json.list questionDecoder
-        )
+        (Json.field "questions" <| Json.list questionDecoder)
 
 
-questionDecoder : Json.Decoder Question
+questionDecoder : Json.Decoder JsonQuestion
 questionDecoder =
     Json.map3
-        Question
+        JsonQuestion
         (Json.field "question" Json.string)
         (Json.field "options" <|
             Json.list Json.string
@@ -340,40 +318,234 @@ questionDecoder =
         (Json.field "answer" Json.string)
 
 
-type alias Topic =
+
+-- QUIZ
+
+
+type alias QuizVault =
+    Dict String TopicQuestions
+
+
+type alias JsonQuizVault =
+    Dict String JsonTopicQuestions
+
+
+
+-- toTopicQuestions : Topic -> JsonQuizVault -> TopicQuestions
+-- toTopicQuestions topic quizzes =
+--     Dict.get (toTopicString topic) quizzes
+--         |> Maybe.map toQuestions
+--         |> Maybe.withDefault initialTopicQuestions
+
+
+updateQuizVault : JsonQuizVault -> QuizVault -> QuizVault
+updateQuizVault jsonQuizVault quizVault =
+    Dict.foldl addTopicQuestions quizVault jsonQuizVault
+
+
+addTopicQuestions : String -> JsonTopicQuestions -> QuizVault -> QuizVault
+addTopicQuestions jsonTopicName jsonTopicQuestions quizVault =
+    case toTopic (String.toLower jsonTopicName) of
+        Just topic ->
+            let
+                topicName =
+                    toTopicString topic
+            in
+            case Dict.get topicName quizVault of
+                Just topicQuestions ->
+                    Dict.insert
+                        topicName
+                        (updateTopicQuestions
+                            jsonTopicQuestions
+                            topicQuestions
+                        )
+                        quizVault
+
+                Nothing ->
+                    quizVault
+
+        Nothing ->
+            quizVault
+
+
+type alias JsonTopicQuestions =
+    List JsonQuestion
+
+
+type alias TopicQuestions =
+    { current : Maybe Question
+    , next : List Question
+    }
+
+
+initialTopicQuestions : TopicQuestions
+initialTopicQuestions =
+    { current = Nothing
+    , next = []
+    }
+
+
+updateTopicQuestions : JsonTopicQuestions -> TopicQuestions -> TopicQuestions
+updateTopicQuestions jsonQuestions questions =
+    List.foldl addQuestion questions jsonQuestions
+
+
+addQuestion : JsonQuestion -> TopicQuestions -> TopicQuestions
+addQuestion jsonQuestion questions =
+    case toQuestion jsonQuestion of
+        Just question ->
+            if questions.current == Nothing then
+                { questions | current = Just question }
+
+            else
+                { questions | next = questions.next ++ [ question ] }
+
+        Nothing ->
+            questions
+
+
+type alias Question =
+    { question : String
+    , options : Options
+    }
+
+
+type alias JsonQuestion =
+    { question : String
+    , options : List String
+    , answer : String
+    }
+
+
+toQuestion : JsonQuestion -> Maybe Question
+toQuestion jsonQuestion =
+    toOptions jsonQuestion.answer jsonQuestion.options
+        |> Maybe.map (\options -> { question = jsonQuestion.question, options = options })
+
+
+type alias Options =
+    { a : ( String, Bool )
+    , b : ( String, Bool )
+    , c : ( String, Bool )
+    , d : ( String, Bool )
+    }
+
+
+toOptions : String -> List String -> Maybe Options
+toOptions answer options =
+    -- TODO: refactor with Maybe.andThen or Maybe.map?
+    case options of
+        [ a, b, c, d ] ->
+            if List.member answer options then
+                Just
+                    { a = ( a, a == answer )
+                    , b = ( b, b == answer )
+                    , c = ( c, c == answer )
+                    , d = ( d, d == answer )
+                    }
+
+            else
+                Nothing
+
+        _ ->
+            Nothing
+
+
+type alias Quiz =
+    { topics : List Topic
+    , vault : QuizVault
+    , metadata : Dict String TopicMetadata
+    }
+
+
+type alias TopicMetadata =
     { urlPath : String
     , logoSrc : String
     , displayName : String
     }
 
 
+type Topic
+    = Html
+    | Css
+    | JavaScript
+    | Accessibility
+
+
+initialQuiz : Quiz
+initialQuiz =
+    { topics = [ Html, Css, JavaScript, Accessibility ]
+    , vault =
+        Dict.fromList
+            [ ( toTopicString Html, initialTopicQuestions )
+            , ( toTopicString Css, initialTopicQuestions )
+            , ( toTopicString JavaScript, initialTopicQuestions )
+            , ( toTopicString Accessibility, initialTopicQuestions )
+            ]
+    , metadata =
+        Dict.fromList
+            [ ( toTopicString Html
+              , { urlPath = "/html"
+                , logoSrc = "/assets/images/icon-html.svg"
+                , displayName = "HTML"
+                }
+              )
+            , ( toTopicString Css
+              , { urlPath = "/css"
+                , logoSrc = "/assets/images/icon-css.svg"
+                , displayName = "CSS"
+                }
+              )
+            , ( toTopicString JavaScript
+              , { urlPath = "/javascript"
+                , logoSrc = "/assets/images/icon-js.svg"
+                , displayName = "JavaScript"
+                }
+              )
+            , ( toTopicString Accessibility
+              , { urlPath = "/accessibility"
+                , logoSrc = "/assets/images/icon-accessibility.svg"
+                , displayName = "Accessibility"
+                }
+              )
+            ]
+    }
+
+
+toTopicString : Topic -> String
+toTopicString topic =
+    case topic of
+        Html ->
+            "html"
+
+        Css ->
+            "css"
+
+        JavaScript ->
+            "javascript"
+
+        Accessibility ->
+            "accessibility"
+
+
 toTopic : String -> Maybe Topic
 toTopic topicName =
-    let
-        urlPath =
-            "/" ++ String.toLower topicName
-    in
-    topics
-        |> List.filter (\topic -> topic.urlPath == urlPath)
-        |> List.head
+    case topicName of
+        "html" ->
+            Just Html
+
+        "css" ->
+            Just Css
+
+        "javascript" ->
+            Just JavaScript
+
+        "accessibility" ->
+            Just Accessibility
+
+        _ ->
+            Nothing
 
 
-topics : List Topic
-topics =
-    [ { urlPath = "/html"
-      , logoSrc = "/assets/images/icon-html.svg"
-      , displayName = "HTML"
-      }
-    , { urlPath = "/css"
-      , logoSrc = "/assets/images/icon-css.svg"
-      , displayName = "CSS"
-      }
-    , { urlPath = "/javascript"
-      , logoSrc = "/assets/images/icon-js.svg"
-      , displayName = "JavaScript"
-      }
-    , { urlPath = "/accessibility"
-      , logoSrc = "/assets/images/icon-accessibility.svg"
-      , displayName = "Accessibility"
-      }
-    ]
+
+{- TODO: split urlPath and check if last one is equal to topicName -}
