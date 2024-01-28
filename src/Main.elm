@@ -203,17 +203,38 @@ viewMain model =
                     [ class "list text--medium" ]
                     (List.map
                         (\topic ->
-                            case Dict.get (toTopicString topic) model.quiz.metadata of
+                            let
+                                topicName =
+                                    toTopicString topic
+                            in
+                            case Dict.get topicName model.quiz.metadata of
                                 Just topicInfo ->
-                                    li [ class "list-item" ]
-                                        [ a
-                                            [ href topicInfo.urlPath ]
-                                            [ img
-                                                [ src topicInfo.logoSrc ]
-                                                []
-                                            , span []
-                                                [ text topicInfo.displayName ]
-                                            ]
+                                    li
+                                        [ class "list-item" ]
+                                        [ case Dict.get topicName model.quiz.vault of
+                                            Just topicQuestions ->
+                                                if topicQuestions.current == Nothing then
+                                                    a
+                                                        []
+                                                        [ img
+                                                            [ src topicInfo.logoSrc ]
+                                                            []
+                                                        , span []
+                                                            [ text topicInfo.displayName ]
+                                                        ]
+
+                                                else
+                                                    a
+                                                        [ href topicInfo.urlPath ]
+                                                        [ img
+                                                            [ src topicInfo.logoSrc ]
+                                                            []
+                                                        , span []
+                                                            [ text topicInfo.displayName ]
+                                                        ]
+
+                                            Nothing ->
+                                                text ""
                                         ]
 
                                 Nothing ->
