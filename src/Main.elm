@@ -33,14 +33,14 @@ main =
 
 type alias Model =
     { route : Route
-    , key : Navigation.Key
+    , navigationKey : Navigation.Key
     , quiz : Quiz
     }
 
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
-init _ url key =
-    ( Model (toRoute url) key initialQuiz, getQuizData )
+init _ url navigationKey =
+    ( Model (toRoute url) navigationKey initialQuiz, getQuizData )
 
 
 
@@ -98,7 +98,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Navigation.pushUrl model.key <|
+                    , Navigation.pushUrl model.navigationKey <|
                         Url.toString url
                     )
 
@@ -147,34 +147,34 @@ update msg model =
 view : Model -> Browser.Document Msg
 view model =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader model.route, viewMain model ]
+    , body = [ viewHeader model, viewMain model ]
     }
 
 
-viewHeader : Route -> Html Msg
-viewHeader route =
+viewHeader : Model -> Html Msg
+viewHeader model =
     header
         [ class "container header" ]
         [ nav []
-            [ case route of
+            [ case model.route of
                 HomePage ->
                     text ""
 
-                TopicPage topicName ->
-                    Debug.todo "topic page"
+                TopicPage topic ->
+                    -- Debug.todo "topic page"
+                    case Dict.get (toTopicString topic) model.quiz.metadata of
+                        Just topicInfo ->
+                            div
+                                [ class "header__image-text text--medium" ]
+                                [ img
+                                    [ src topicInfo.logoSrc ]
+                                    []
+                                , span []
+                                    [ text topicInfo.displayName ]
+                                ]
 
-            -- case toTopic topicName of
-            --     Just topic ->
-            --         div
-            --             [ class "header__image-text text--medium" ]
-            --             [ img
-            --                 [ src topic.logoSrc ]
-            --                 []
-            --             , span []
-            --                 [ text topic.displayName ]
-            --             ]
-            --     Nothing ->
-            --         text ""
+                        Nothing ->
+                            text ""
             ]
         ]
 
@@ -246,10 +246,12 @@ viewMain model =
                 ]
 
             TopicPage topicName ->
-                Debug.todo "topic page"
+                [ text "" ]
 
 
 
+-- Debug.todo
+-- "topic page"
 -- let
 --     maybeGameState =
 --         case model.data of
