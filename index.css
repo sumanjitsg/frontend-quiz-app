@@ -1,3 +1,5 @@
+/* todo: add rubic italic variable font */
+
 @font-face {
   font-family: "Rubik";
   src: url("/assets/fonts/Rubik-VariableFont_wght.ttf") format("truetype");
@@ -64,6 +66,10 @@ ul {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+a:not([href]) {
+  pointer-events: none;
 }
 
 img {
