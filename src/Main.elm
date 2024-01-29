@@ -262,13 +262,16 @@ viewMain model =
                                         ]
 
                                     Nothing ->
-                                        Debug.todo "no current index"
+                                        -- Debug.todo "no current index"
+                                        [ text "" ]
 
                             Nothing ->
-                                Debug.todo "no current question"
+                                -- Debug.todo "no current question"
+                                [ text "" ]
 
                     Nothing ->
-                        Debug.todo "no topic questions"
+                        -- Debug.todo "no topic questions"
+                        [ text "" ]
 
 
 
