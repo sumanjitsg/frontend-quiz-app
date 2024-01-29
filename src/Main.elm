@@ -133,17 +133,6 @@ update msg model =
                     ( model, Cmd.none )
 
 
-
--- case data of
---     Ok jsonQuizVault ->
---         ( { model | topics = updateQuizVault jsonQuizVault model.topics }
---         , Cmd.none
---         )
---     Err _ ->
---         ( model, Cmd.none )
--- TODO: what happens if a route is opened directly?
-
-
 view : Model -> Browser.Document Msg
 view model =
     { title = "Frontend Quiz App"
@@ -161,7 +150,6 @@ viewHeader model =
                     text ""
 
                 TopicPage topic ->
-                    -- Debug.todo "topic page"
                     case Dict.get (toTopicString topic) model.quiz.metadata of
                         Just topicInfo ->
                             div
@@ -245,59 +233,46 @@ viewMain model =
                     )
                 ]
 
-            TopicPage topicName ->
-                [ text "" ]
+            TopicPage topic ->
+                case Dict.get (toTopicString topic) model.quiz.vault of
+                    Just topicQuestions ->
+                        case topicQuestions.current of
+                            Just question ->
+                                case topicQuestions.currentIndex of
+                                    Just currentIndex ->
+                                        [ div []
+                                            [ p [ class "text--italic" ]
+                                                [ text ("Question " ++ String.fromInt currentIndex ++ " of " ++ String.fromInt (1 + List.length topicQuestions.next)) ]
+                                            , p
+                                                [ class "text--large" ]
+                                                [ text question.question
+                                                ]
+                                            ]
+                                        , div
+                                            [ class "list text--medium" ]
+                                            [ ul [ class "list" ] <|
+                                                List.map
+                                                    (\option ->
+                                                        li [ class "list-item" ]
+                                                            [ div [] [ text option.text ]
+                                                            ]
+                                                    )
+                                                    question.options
+                                            ]
+                                        ]
+
+                                    Nothing ->
+                                        Debug.todo "no current index"
+
+                            Nothing ->
+                                Debug.todo "no current question"
+
+                    Nothing ->
+                        Debug.todo "no topic questions"
 
 
 
--- Debug.todo
--- "topic page"
--- let
---     maybeGameState =
---         case model.data of
---             Success quizzes ->
---                 case toTopic topicName of
---                     Just topic ->
---                         toGameState topic quizzes
---                     Nothing ->
---                         Nothing
---             _ ->
---                 Nothing
--- in
--- case maybeGameState of
---     Just gameState ->
---         -- let
---         --     _ =
---         --         Debug.log "game state" gameState
---         -- in
---         [ div []
---             [ p [ class "text--italic" ]
---                 [ text ("Question " ++ String.fromInt gameState.currentQuestion ++ " of 10") ]
---             , p [ class "text--large" ]
---                 [ case List.head gameState.questions of
---                     Just question ->
---                         text question.title
---                     Nothing ->
---                         text ""
---                 ]
---             ]
---         , div [ class "list text--medium" ]
---             [ case List.head gameState.questions of
---                 Just question ->
---                     ul [ class "list" ] <|
---                         List.map
---                             (\option ->
---                                 li [ class "list-item" ]
---                                     [ div [] [ text option ]
---                                     ]
---                             )
---                             question.options
---                 Nothing ->
---                     text ""
---             ]
---         ]
---     Nothing ->
---         []
+-- TODO: what do we show on topic page if topic vault opened directly and there's an error populating the topic vault?
 -- HTTP
 
 
@@ -353,14 +328,6 @@ type alias JsonQuizVault =
     Dict String JsonTopicQuestions
 
 
-
--- toTopicQuestions : Topic -> JsonQuizVault -> TopicQuestions
--- toTopicQuestions topic quizzes =
---     Dict.get (toTopicString topic) quizzes
---         |> Maybe.map toQuestions
---         |> Maybe.withDefault initialTopicQuestions
-
-
 updateQuizVault : JsonQuizVault -> QuizVault -> QuizVault
 updateQuizVault jsonQuizVault quizVault =
     Dict.foldl addTopicQuestions quizVault jsonQuizVault
@@ -398,6 +365,7 @@ type alias JsonTopicQuestions =
 type alias TopicQuestions =
     { current : Maybe Question
     , next : List Question
+    , currentIndex : Maybe Int
     }
 
 
@@ -405,6 +373,7 @@ initialTopicQuestions : TopicQuestions
 initialTopicQuestions =
     { current = Nothing
     , next = []
+    , currentIndex = Nothing
     }
 
 
@@ -418,7 +387,10 @@ addQuestion jsonQuestion questions =
     case toQuestion jsonQuestion of
         Just question ->
             if questions.current == Nothing then
-                { questions | current = Just question }
+                { questions
+                    | current = Just question
+                    , currentIndex = Just 1
+                }
 
             else
                 { questions | next = questions.next ++ [ question ] }
@@ -447,11 +419,7 @@ toQuestion jsonQuestion =
 
 
 type alias Options =
-    { a : ( String, Bool )
-    , b : ( String, Bool )
-    , c : ( String, Bool )
-    , d : ( String, Bool )
-    }
+    List { text : String, isAnswer : Bool }
 
 
 toOptions : String -> List String -> Maybe Options
@@ -461,11 +429,11 @@ toOptions answer options =
         [ a, b, c, d ] ->
             if List.member answer options then
                 Just
-                    { a = ( a, a == answer )
-                    , b = ( b, b == answer )
-                    , c = ( c, c == answer )
-                    , d = ( d, d == answer )
-                    }
+                    [ { text = a, isAnswer = a == answer }
+                    , { text = b, isAnswer = b == answer }
+                    , { text = c, isAnswer = c == answer }
+                    , { text = d, isAnswer = d == answer }
+                    ]
 
             else
                 Nothing
