@@ -7,8 +7,9 @@ import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
 import Http
+import Quiz exposing (Quiz)
+import Route exposing (Route)
 import Url exposing (Url)
-import Url.Parser as Url
 
 
 
@@ -40,45 +41,7 @@ type alias Model =
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url navigationKey =
-    ( Model (toRoute url) navigationKey initialQuiz, Api.getVaultData ReceivedVaultData )
-
-
-
--- ROUTE
-
-
-type Route
-    = HomePage
-    | TopicPage Topic
-
-
-routeParser : Url.Parser (Route -> a) a
-routeParser =
-    Url.oneOf
-        [ Url.map HomePage Url.top
-        , Url.map TopicPage topicParser
-        ]
-
-
-topicParser : Url.Parser (Topic -> a) a
-topicParser =
-    Url.oneOf
-        [ Url.map Html (Url.s "html")
-        , Url.map Css (Url.s "css")
-        , Url.map JavaScript (Url.s "javascript")
-        , Url.map Accessibility (Url.s "accessibility")
-        ]
-
-
-toRoute : Url -> Route
-toRoute url =
-    case Url.parse routeParser url of
-        Just route ->
-            route
-
-        Nothing ->
-            -- TODO: redirect to HomePage
-            HomePage
+    ( Model (Route.toRoute url) navigationKey initialQuiz, Api.getVaultData ReceivedVaultData )
 
 
 
@@ -108,7 +71,7 @@ update msg model =
                     )
 
         UrlChanged url ->
-            ( { model | route = toRoute url }
+            ( { model | route = Route.toRoute url }
             , Cmd.none
             )
 
@@ -117,7 +80,7 @@ update msg model =
                 Ok jsonQuizVault ->
                     let
                         updatedVault =
-                            updateQuizVault jsonQuizVault model.quiz.vault
+                            Quiz.updateQuizVault jsonQuizVault model.quiz.vault
 
                         quiz =
                             model.quiz
@@ -146,11 +109,11 @@ viewHeader model =
         [ class "container header" ]
         [ nav []
             [ case model.route of
-                HomePage ->
+                Route.HomePage ->
                     text ""
 
-                TopicPage topic ->
-                    case Dict.get (toTopicString topic) model.quiz.metadata of
+                Route.TopicPage topic ->
+                    case Dict.get (Quiz.toTopicString topic) model.quiz.metadata of
                         Just topicInfo ->
                             div
                                 [ class "header__image-text text--medium" ]
@@ -173,7 +136,7 @@ viewMain model =
         [ class "container" ]
     <|
         case model.route of
-            HomePage ->
+            Route.HomePage ->
                 [ header
                     [ class "header" ]
                     [ h1 [ class "text--xl" ]
@@ -193,7 +156,7 @@ viewMain model =
                         (\topic ->
                             let
                                 topicName =
-                                    toTopicString topic
+                                    Quiz.toTopicString topic
                             in
                             case Dict.get topicName model.quiz.metadata of
                                 Just topicInfo ->
@@ -233,8 +196,8 @@ viewMain model =
                     )
                 ]
 
-            TopicPage topic ->
-                case Dict.get (toTopicString topic) model.quiz.vault of
+            Route.TopicPage topic ->
+                case Dict.get (Quiz.toTopicString topic) model.quiz.vault of
                     Just topicQuestions ->
                         case topicQuestions.current of
                             Just question ->
@@ -279,48 +242,7 @@ viewMain model =
 -- QUIZ
 
 
-type alias QuizVault =
-    Dict String TopicQuestions
-
-
-updateQuizVault : Api.JsonQuizVault -> QuizVault -> QuizVault
-updateQuizVault jsonQuizVault quizVault =
-    Dict.foldl addTopicQuestions quizVault jsonQuizVault
-
-
-addTopicQuestions : String -> Api.JsonTopicQuestions -> QuizVault -> QuizVault
-addTopicQuestions jsonTopicName jsonTopicQuestions quizVault =
-    case toTopic (String.toLower jsonTopicName) of
-        Just topic ->
-            let
-                topicName =
-                    toTopicString topic
-            in
-            case Dict.get topicName quizVault of
-                Just topicQuestions ->
-                    Dict.insert
-                        topicName
-                        (updateTopicQuestions
-                            jsonTopicQuestions
-                            topicQuestions
-                        )
-                        quizVault
-
-                Nothing ->
-                    quizVault
-
-        Nothing ->
-            quizVault
-
-
-type alias TopicQuestions =
-    { current : Maybe Question
-    , next : List Question
-    , currentIndex : Maybe Int
-    }
-
-
-initialTopicQuestions : TopicQuestions
+initialTopicQuestions : Quiz.TopicQuestions
 initialTopicQuestions =
     { current = Nothing
     , next = []
@@ -328,116 +250,37 @@ initialTopicQuestions =
     }
 
 
-updateTopicQuestions : Api.JsonTopicQuestions -> TopicQuestions -> TopicQuestions
-updateTopicQuestions jsonQuestions questions =
-    List.foldl addQuestion questions jsonQuestions
-
-
-addQuestion : Api.JsonQuestion -> TopicQuestions -> TopicQuestions
-addQuestion jsonQuestion questions =
-    case toQuestion jsonQuestion of
-        Just question ->
-            if questions.current == Nothing then
-                { questions
-                    | current = Just question
-                    , currentIndex = Just 1
-                }
-
-            else
-                { questions | next = questions.next ++ [ question ] }
-
-        Nothing ->
-            questions
-
-
-type alias Question =
-    { question : String
-    , options : Options
-    }
-
-
-toQuestion : Api.JsonQuestion -> Maybe Question
-toQuestion jsonQuestion =
-    toOptions jsonQuestion.answer jsonQuestion.options
-        |> Maybe.map (\options -> { question = jsonQuestion.question, options = options })
-
-
-type alias Options =
-    List { text : String, isAnswer : Bool }
-
-
-toOptions : String -> List String -> Maybe Options
-toOptions answer options =
-    -- TODO: refactor with Maybe.andThen or Maybe.map?
-    case options of
-        [ a, b, c, d ] ->
-            if List.member answer options then
-                Just
-                    [ { text = a, isAnswer = a == answer }
-                    , { text = b, isAnswer = b == answer }
-                    , { text = c, isAnswer = c == answer }
-                    , { text = d, isAnswer = d == answer }
-                    ]
-
-            else
-                Nothing
-
-        _ ->
-            Nothing
-
-
-type alias Quiz =
-    { topics : List Topic
-    , vault : QuizVault
-    , metadata : Dict String TopicMetadata
-    }
-
-
-type alias TopicMetadata =
-    { urlPath : String
-    , logoSrc : String
-    , displayName : String
-    }
-
-
-type Topic
-    = Html
-    | Css
-    | JavaScript
-    | Accessibility
-
-
 initialQuiz : Quiz
 initialQuiz =
-    { topics = [ Html, Css, JavaScript, Accessibility ]
+    { topics = [ Quiz.Html, Quiz.Css, Quiz.JavaScript, Quiz.Accessibility ]
     , vault =
         Dict.fromList
-            [ ( toTopicString Html, initialTopicQuestions )
-            , ( toTopicString Css, initialTopicQuestions )
-            , ( toTopicString JavaScript, initialTopicQuestions )
-            , ( toTopicString Accessibility, initialTopicQuestions )
+            [ ( Quiz.toTopicString Quiz.Html, initialTopicQuestions )
+            , ( Quiz.toTopicString Quiz.Css, initialTopicQuestions )
+            , ( Quiz.toTopicString Quiz.JavaScript, initialTopicQuestions )
+            , ( Quiz.toTopicString Quiz.Accessibility, initialTopicQuestions )
             ]
     , metadata =
         Dict.fromList
-            [ ( toTopicString Html
+            [ ( Quiz.toTopicString Quiz.Html
               , { urlPath = "/html"
                 , logoSrc = "/assets/images/icon-html.svg"
                 , displayName = "HTML"
                 }
               )
-            , ( toTopicString Css
+            , ( Quiz.toTopicString Quiz.Css
               , { urlPath = "/css"
                 , logoSrc = "/assets/images/icon-css.svg"
                 , displayName = "CSS"
                 }
               )
-            , ( toTopicString JavaScript
+            , ( Quiz.toTopicString Quiz.JavaScript
               , { urlPath = "/javascript"
                 , logoSrc = "/assets/images/icon-js.svg"
                 , displayName = "JavaScript"
                 }
               )
-            , ( toTopicString Accessibility
+            , ( Quiz.toTopicString Quiz.Accessibility
               , { urlPath = "/accessibility"
                 , logoSrc = "/assets/images/icon-accessibility.svg"
                 , displayName = "Accessibility"
@@ -445,41 +288,6 @@ initialQuiz =
               )
             ]
     }
-
-
-toTopicString : Topic -> String
-toTopicString topic =
-    case topic of
-        Html ->
-            "html"
-
-        Css ->
-            "css"
-
-        JavaScript ->
-            "javascript"
-
-        Accessibility ->
-            "accessibility"
-
-
-toTopic : String -> Maybe Topic
-toTopic topicName =
-    case topicName of
-        "html" ->
-            Just Html
-
-        "css" ->
-            Just Css
-
-        "javascript" ->
-            Just JavaScript
-
-        "accessibility" ->
-            Just Accessibility
-
-        _ ->
-            Nothing
 
 
 
