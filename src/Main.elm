@@ -1,12 +1,12 @@
 module Main exposing (main)
 
+import Api
 import Browser
 import Browser.Navigation as Navigation
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (class, href, src)
 import Http
-import Json.Decode as Json
 import Url exposing (Url)
 import Url.Parser as Url
 
@@ -40,7 +40,7 @@ type alias Model =
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url navigationKey =
-    ( Model (toRoute url) navigationKey initialQuiz, getQuizData )
+    ( Model (toRoute url) navigationKey initialQuiz, Api.getVaultData ReceivedVaultData )
 
 
 
@@ -88,7 +88,7 @@ toRoute url =
 type Msg
     = UrlChanged Url
     | LinkClicked Browser.UrlRequest
-    | ReceivedQuizData (Result Http.Error JsonQuizVault)
+    | ReceivedVaultData (Result Http.Error Api.JsonQuizVault)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,7 +112,7 @@ update msg model =
             , Cmd.none
             )
 
-        ReceivedQuizData data ->
+        ReceivedVaultData data ->
             case data of
                 Ok jsonQuizVault ->
                     let
@@ -276,50 +276,6 @@ viewMain model =
 
 
 -- TODO: what do we show on topic page if topic vault opened directly and there's an error populating the topic vault?
--- HTTP
-
-
-getQuizData =
-    Http.get
-        { url = "/data.json"
-        , expect = Http.expectJson ReceivedQuizData responseDecoder
-        }
-
-
-
--- DECODERS
-
-
-responseDecoder : Json.Decoder JsonQuizVault
-responseDecoder =
-    Json.field "quizzes" quizVaultDecoder
-
-
-quizVaultDecoder : Json.Decoder JsonQuizVault
-quizVaultDecoder =
-    Json.map Dict.fromList <| Json.list topicQuestionsDecoder
-
-
-topicQuestionsDecoder : Json.Decoder ( String, JsonTopicQuestions )
-topicQuestionsDecoder =
-    Json.map2
-        Tuple.pair
-        (Json.field "title" Json.string)
-        (Json.field "questions" <| Json.list questionDecoder)
-
-
-questionDecoder : Json.Decoder JsonQuestion
-questionDecoder =
-    Json.map3
-        JsonQuestion
-        (Json.field "question" Json.string)
-        (Json.field "options" <|
-            Json.list Json.string
-        )
-        (Json.field "answer" Json.string)
-
-
-
 -- QUIZ
 
 
@@ -327,16 +283,12 @@ type alias QuizVault =
     Dict String TopicQuestions
 
 
-type alias JsonQuizVault =
-    Dict String JsonTopicQuestions
-
-
-updateQuizVault : JsonQuizVault -> QuizVault -> QuizVault
+updateQuizVault : Api.JsonQuizVault -> QuizVault -> QuizVault
 updateQuizVault jsonQuizVault quizVault =
     Dict.foldl addTopicQuestions quizVault jsonQuizVault
 
 
-addTopicQuestions : String -> JsonTopicQuestions -> QuizVault -> QuizVault
+addTopicQuestions : String -> Api.JsonTopicQuestions -> QuizVault -> QuizVault
 addTopicQuestions jsonTopicName jsonTopicQuestions quizVault =
     case toTopic (String.toLower jsonTopicName) of
         Just topic ->
@@ -361,10 +313,6 @@ addTopicQuestions jsonTopicName jsonTopicQuestions quizVault =
             quizVault
 
 
-type alias JsonTopicQuestions =
-    List JsonQuestion
-
-
 type alias TopicQuestions =
     { current : Maybe Question
     , next : List Question
@@ -380,12 +328,12 @@ initialTopicQuestions =
     }
 
 
-updateTopicQuestions : JsonTopicQuestions -> TopicQuestions -> TopicQuestions
+updateTopicQuestions : Api.JsonTopicQuestions -> TopicQuestions -> TopicQuestions
 updateTopicQuestions jsonQuestions questions =
     List.foldl addQuestion questions jsonQuestions
 
 
-addQuestion : JsonQuestion -> TopicQuestions -> TopicQuestions
+addQuestion : Api.JsonQuestion -> TopicQuestions -> TopicQuestions
 addQuestion jsonQuestion questions =
     case toQuestion jsonQuestion of
         Just question ->
@@ -408,14 +356,7 @@ type alias Question =
     }
 
 
-type alias JsonQuestion =
-    { question : String
-    , options : List String
-    , answer : String
-    }
-
-
-toQuestion : JsonQuestion -> Maybe Question
+toQuestion : Api.JsonQuestion -> Maybe Question
 toQuestion jsonQuestion =
     toOptions jsonQuestion.answer jsonQuestion.options
         |> Maybe.map (\options -> { question = jsonQuestion.question, options = options })
