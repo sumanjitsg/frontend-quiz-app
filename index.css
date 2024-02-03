@@ -103,10 +103,6 @@ main > * {
   flex-basis: 100%;
 }
 
-main .header {
-  padding-top: 2rem;
-}
-
 main .header > * + * {
   margin-top: 1rem;
 }
@@ -155,7 +151,7 @@ main .header > * + * {
     width: min(80%, 75rem);
   }
 
-  .header {
+  .body__header {
     min-height: 14rem;
   }
 
@@ -170,10 +166,6 @@ main .header > * + * {
 
   main > * {
     flex-basis: 0;
-  }
-
-  main .header {
-    padding-top: 0;
   }
 
   main .header > * + * {
