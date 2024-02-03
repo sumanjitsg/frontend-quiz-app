@@ -106,7 +106,7 @@ view model =
 viewHeader : Model -> Html Msg
 viewHeader model =
     header
-        [ class "container header" ]
+        [ class "container body__header" ]
         [ nav []
             [ case model.route of
                 Route.HomePage ->
