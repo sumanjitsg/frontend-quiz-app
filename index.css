@@ -80,24 +80,27 @@ img {
 
 /* LAYOUT */
 
-.container {
-  padding-inline: 1.5rem;
+.body__header {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
 }
 
-.header {
-  padding-block: 1rem;
-  min-height: 3.5rem;
+.container {
+  width: min(87%, 30rem);
+  margin-inline: auto;
 }
 
 main {
+  padding-block: 2rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 2.5rem;
-  padding-top: 2rem;
 }
 
 main > * {
   flex-grow: 1;
+  flex-basis: 100%;
 }
 
 main .header {
@@ -133,13 +136,26 @@ main .header > * + * {
   width: 2.5rem;
 }
 
-@media (width >= 90rem) {
+@media (width > 48rem) {
   .container {
-    padding-inline: 8.75rem;
+    width: min(80%, 48rem);
+  }
+
+  .body__header {
+    min-height: 8.5rem;
+  }
+
+  main {
+    gap: 4rem;
+  }
+}
+
+@media (width > 75rem) {
+  .container {
+    width: min(80%, 75rem);
   }
 
   .header {
-    padding-block: 5rem;
     min-height: 14rem;
   }
 
@@ -150,6 +166,10 @@ main .header > * + * {
   main {
     flex-direction: row;
     padding-top: 0;
+  }
+
+  main > * {
+    flex-basis: 0;
   }
 
   main .header {
@@ -211,9 +231,10 @@ main .header > * + * {
   color: var(--light-bluish);
 }
 
-@media (width >= 90rem) {
+@media (width > 75rem) {
   .text--xl {
     font-size: 4rem;
+    width: max-content;
   }
 
   .text--large {
