@@ -212,8 +212,19 @@ viewMain model =
                                                 ]
                                             ]
                                         , div
-                                            [ class "list text--medium" ]
+                                            [ class "text--medium" ]
                                             [ ul [ class "list" ] <|
+                                                let
+                                                    toUppercaseLetter index =
+                                                        String.fromChar <| Char.fromCode (65 + index)
+
+                                                    indexedOptions =
+                                                        List.indexedMap
+                                                            (\index option ->
+                                                                Tuple.pair (toUppercaseLetter index) option
+                                                            )
+                                                            question.options
+                                                in
                                                 List.map
                                                     (\option ->
                                                         li [ class "list-item" ]
@@ -221,6 +232,9 @@ viewMain model =
                                                             ]
                                                     )
                                                     question.options
+                                            , button
+                                                [ class "btn btn--primary" ]
+                                                [ text "Submit Answer" ]
                                             ]
                                         ]
 

@@ -11,6 +11,7 @@
   --navy: #3b4d66;
   --light-bluish: #abc1e1;
   --pure-white: #fff;
+  --purple: #a729f5;
 
   --bg-color: var(--dark-navy);
   --text-color: var(--pure-white);
@@ -70,6 +71,10 @@ a {
 
 a:not([href]) {
   pointer-events: none;
+}
+
+button {
+  cursor: pointer;
 }
 
 img {
@@ -177,7 +182,8 @@ main .header > * + * {
   }
 
   .list-item > * {
-    padding: 1.25rem;
+    padding-inline: 1.25rem;
+    min-height: 5rem;
   }
 
   .list-item > * {
@@ -244,4 +250,19 @@ main .header > * + * {
   .text--italic {
     font-size: 1.25rem;
   }
+}
+
+/* COMPONENTS */
+.btn {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  border: none;
+  width: 100%;
+}
+.btn.btn--primary {
+  background-color: var(--purple);
+  border-radius: 0.75rem;
+  min-height: 5rem;
+  margin-top: 2rem;
 }
