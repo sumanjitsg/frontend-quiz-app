@@ -215,23 +215,27 @@ viewMain model =
                                             [ class "text--medium" ]
                                             [ ul [ class "list" ] <|
                                                 let
-                                                    toUppercaseLetter index =
+                                                    toUpperLetter index =
                                                         String.fromChar <| Char.fromCode (65 + index)
 
                                                     indexedOptions =
                                                         List.indexedMap
                                                             (\index option ->
-                                                                Tuple.pair (toUppercaseLetter index) option
+                                                                Tuple.pair (toUpperLetter index) option
                                                             )
                                                             question.options
                                                 in
                                                 List.map
-                                                    (\option ->
+                                                    (\( index, option ) ->
                                                         li [ class "list-item" ]
-                                                            [ div [] [ text option.text ]
+                                                            [ div []
+                                                                [ span []
+                                                                    [ text index ]
+                                                                , span [] [ text option.text ]
+                                                                ]
                                                             ]
                                                     )
-                                                    question.options
+                                                    indexedOptions
                                             , button
                                                 [ class "btn btn--primary" ]
                                                 [ text "Submit Answer" ]
