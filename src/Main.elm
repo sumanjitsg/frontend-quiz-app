@@ -106,7 +106,7 @@ view model =
 viewHeader : Model -> Html Msg
 viewHeader model =
     header
-        [ class "container body__header" ]
+        [ class "container" ]
         [ nav []
             [ case model.route of
                 Route.HomePage ->
@@ -116,7 +116,7 @@ viewHeader model =
                     case Dict.get (Quiz.toTopicString topic) model.quiz.metadata of
                         Just topicInfo ->
                             div
-                                [ class "header__image-text text--medium" ]
+                                [ class "topicpage__logo text--medium" ]
                                 [ img
                                     [ src topicInfo.logoSrc ]
                                     []
@@ -138,20 +138,20 @@ viewMain model =
         case model.route of
             Route.HomePage ->
                 [ header
-                    [ class "header" ]
+                    []
                     [ h1 [ class "text--xl" ]
                         [ div []
                             [ text "Welcome to the" ]
                         , div []
                             [ text "Frontend Quiz!" ]
                         ]
-                    , p [ class "text--italic" ]
+                    , p [ class "text--italic homepage__text--italic" ]
                         [ text "Pick a subject to get started." ]
                     ]
 
                 -- List of quiz topics
                 , ul
-                    [ class "list text--medium" ]
+                    [ class "text--medium" ]
                     (List.map
                         (\topic ->
                             let
@@ -166,9 +166,10 @@ viewMain model =
                                             Just topicQuestions ->
                                                 if topicQuestions.current == Nothing then
                                                     a
-                                                        []
+                                                        [ class "list-item__container" ]
                                                         [ img
-                                                            [ src topicInfo.logoSrc ]
+                                                            [ src topicInfo.logoSrc
+                                                            , class "topic-image"]
                                                             []
                                                         , span []
                                                             [ text topicInfo.displayName ]
@@ -176,7 +177,8 @@ viewMain model =
 
                                                 else
                                                     a
-                                                        [ href topicInfo.urlPath ]
+                                                        [ class "list-item__container"
+                                                        , href topicInfo.urlPath ]
                                                         [ img
                                                             [ src topicInfo.logoSrc ]
                                                             []
@@ -228,7 +230,7 @@ viewMain model =
                                                 List.map
                                                     (\( index, option ) ->
                                                         li [ class "list-item" ]
-                                                            [ div []
+                                                            [ div [ class "list-item__container"]
                                                                 [ span []
                                                                     [ text index ]
                                                                 , span [] [ text option.text ]
