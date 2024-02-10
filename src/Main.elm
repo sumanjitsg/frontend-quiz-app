@@ -99,142 +99,169 @@ update msg model =
 view : Model -> Browser.Document Msg
 view model =
     { title = "Frontend Quiz App"
-    , body = [ viewHeader model, viewMain model ]
+    , body =
+        case model.route of
+            Route.HomePage ->
+                viewHomePage model
+
+            Route.TopicPage topic ->
+                viewTopicPage model topic
     }
 
 
-viewHeader : Model -> Html Msg
-viewHeader model =
-    header
-        [ class "container body__header" ]
+viewHomePage : Model -> List (Html Msg)
+viewHomePage model =
+    [ header
+        [ class "container" ]
         [ nav []
-            [ case model.route of
-                Route.HomePage ->
-                    text ""
-
-                Route.TopicPage topic ->
-                    case Dict.get (Quiz.toTopicString topic) model.quiz.metadata of
+            [ text "" ]
+        ]
+    , main_
+        [ class "container" ]
+        [ header
+            []
+            [ h1 [ class "text--xl" ]
+                [ div []
+                    [ text "Welcome to the" ]
+                , div []
+                    [ text "Frontend Quiz!" ]
+                ]
+            , p [ class "text--italic homepage__text--italic" ]
+                [ text "Pick a subject to get started." ]
+            ]
+        , -- list of topic links
+          ul
+            [ class "text--medium" ]
+            (List.map
+                (\topic ->
+                    let
+                        topicName =
+                            Quiz.toTopicString topic
+                    in
+                    case Dict.get topicName model.quiz.metadata of
                         Just topicInfo ->
-                            div
-                                [ class "header__image-text text--medium" ]
-                                [ img
-                                    [ src topicInfo.logoSrc ]
-                                    []
-                                , span []
-                                    [ text topicInfo.displayName ]
+                            li
+                                [ class "list-item" ]
+                                [ case Dict.get topicName model.quiz.vault of
+                                    Just topicQuestions ->
+                                        if topicQuestions.current == Nothing then
+                                            a
+                                                [ class "list-item__container" ]
+                                                [ img
+                                                    [ src topicInfo.logoSrc
+                                                    , class "topic-image"
+                                                    ]
+                                                    []
+                                                , span []
+                                                    [ text topicInfo.displayName ]
+                                                ]
+
+                                        else
+                                            a
+                                                [ class "list-item__container"
+                                                , href topicInfo.urlPath
+                                                ]
+                                                [ img
+                                                    [ src topicInfo.logoSrc ]
+                                                    []
+                                                , span []
+                                                    [ text topicInfo.displayName ]
+                                                ]
+
+                                    Nothing ->
+                                        text ""
                                 ]
 
                         Nothing ->
+                            -- TODO: handle this case
                             text ""
+                )
+                model.quiz.topics
+            )
+        ]
+    ]
+
+
+viewTopicPage : Model -> Quiz.Topic -> List (Html Msg)
+viewTopicPage model topic =
+    [ header
+        [ class "container" ]
+        [ nav []
+            [ case Dict.get (Quiz.toTopicString topic) model.quiz.metadata of
+                Just topicInfo ->
+                    div
+                        [ class "topicpage__logo text--medium" ]
+                        [ img
+                            [ src topicInfo.logoSrc ]
+                            []
+                        , span []
+                            [ text topicInfo.displayName ]
+                        ]
+
+                Nothing ->
+                    text ""
             ]
         ]
-
-
-viewMain : Model -> Html Msg
-viewMain model =
-    main_
+    , main_
         [ class "container" ]
-    <|
-        case model.route of
-            Route.HomePage ->
-                [ header
-                    [ class "header" ]
-                    [ h1 [ class "text--xl" ]
-                        [ div []
-                            [ text "Welcome to the" ]
-                        , div []
-                            [ text "Frontend Quiz!" ]
-                        ]
-                    , p [ class "text--italic" ]
-                        [ text "Pick a subject to get started." ]
-                    ]
-
-                -- List of quiz topics
-                , ul
-                    [ class "list text--medium" ]
-                    (List.map
-                        (\topic ->
-                            let
-                                topicName =
-                                    Quiz.toTopicString topic
-                            in
-                            case Dict.get topicName model.quiz.metadata of
-                                Just topicInfo ->
-                                    li
-                                        [ class "list-item" ]
-                                        [ case Dict.get topicName model.quiz.vault of
-                                            Just topicQuestions ->
-                                                if topicQuestions.current == Nothing then
-                                                    a
-                                                        []
-                                                        [ img
-                                                            [ src topicInfo.logoSrc ]
-                                                            []
-                                                        , span []
-                                                            [ text topicInfo.displayName ]
-                                                        ]
-
-                                                else
-                                                    a
-                                                        [ href topicInfo.urlPath ]
-                                                        [ img
-                                                            [ src topicInfo.logoSrc ]
-                                                            []
-                                                        , span []
-                                                            [ text topicInfo.displayName ]
-                                                        ]
-
-                                            Nothing ->
-                                                text ""
+      <|
+        case Dict.get (Quiz.toTopicString topic) model.quiz.vault of
+            Just topicQuestions ->
+                case topicQuestions.current of
+                    Just question ->
+                        case topicQuestions.currentIndex of
+                            Just currentIndex ->
+                                [ div []
+                                    [ p [ class "text--italic" ]
+                                        [ text ("Question " ++ String.fromInt currentIndex ++ " of " ++ String.fromInt (1 + List.length topicQuestions.next)) ]
+                                    , p
+                                        [ class "text--large" ]
+                                        [ text question.question
                                         ]
+                                    ]
+                                , div
+                                    [ class "text--medium" ]
+                                    [ ul [ class "list" ] <|
+                                        let
+                                            toUpperLetter index =
+                                                String.fromChar <| Char.fromCode (65 + index)
 
-                                Nothing ->
-                                    -- TODO: handle this case
-                                    text ""
-                        )
-                        model.quiz.topics
-                    )
-                ]
-
-            Route.TopicPage topic ->
-                case Dict.get (Quiz.toTopicString topic) model.quiz.vault of
-                    Just topicQuestions ->
-                        case topicQuestions.current of
-                            Just question ->
-                                case topicQuestions.currentIndex of
-                                    Just currentIndex ->
-                                        [ div []
-                                            [ p [ class "text--italic" ]
-                                                [ text ("Question " ++ String.fromInt currentIndex ++ " of " ++ String.fromInt (1 + List.length topicQuestions.next)) ]
-                                            , p
-                                                [ class "text--large" ]
-                                                [ text question.question
-                                                ]
-                                            ]
-                                        , div
-                                            [ class "list text--medium" ]
-                                            [ ul [ class "list" ] <|
-                                                List.map
-                                                    (\option ->
-                                                        li [ class "list-item" ]
-                                                            [ div [] [ text option.text ]
-                                                            ]
+                                            indexedOptions =
+                                                List.indexedMap
+                                                    (\index option ->
+                                                        Tuple.pair (toUpperLetter index) option
                                                     )
                                                     question.options
-                                            ]
-                                        ]
-
-                                    Nothing ->
-                                        -- Debug.todo "no current index"
-                                        [ text "" ]
+                                        in
+                                        List.map
+                                            (\( index, option ) ->
+                                                li [ class "list-item" ]
+                                                    [ div [ class "list-item__container" ]
+                                                        [ span []
+                                                            [ text index ]
+                                                        , span [] [ text option.text ]
+                                                        ]
+                                                    ]
+                                            )
+                                            indexedOptions
+                                    , button
+                                        [ class "btn btn--primary" ]
+                                        [ text "Submit Answer" ]
+                                    ]
+                                ]
 
                             Nothing ->
-                                -- Debug.todo "no current question"
+                                -- Debug.todo "no current index"
                                 [ text "" ]
 
                     Nothing ->
-                        -- Debug.todo "no topic questions"
+                        -- Debug.todo "no current question"
                         [ text "" ]
+
+            Nothing ->
+                -- Debug.todo "no topic questions"
+                [ text "" ]
+    ]
 
 
 

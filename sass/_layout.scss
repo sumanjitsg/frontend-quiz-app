@@ -1,0 +1,107 @@
+@use "variables" as var;
+
+/* LAYOUT */
+
+body > header {
+  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+
+  @media (width > var.$screen-medium) {
+    min-height: 8.5rem;
+  }
+
+  @media (width > var.$screen-large) {
+    min-height: 14rem;
+  }
+}
+
+.container {
+  width: min(87%, var.$screen-small);
+  margin-inline: auto;
+
+  @media (width > var.$screen-medium) {
+    width: min(80%, var.$screen-medium);
+  }
+
+  @media (width > var.$screen-large) {
+    width: min(80%, var.$screen-large);
+  }
+}
+
+main {
+  padding-block: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+
+  @media (width > var.$screen-medium) {
+    gap: 4rem;
+  }
+
+  @media (width > var.$screen-large) {
+    flex-direction: row;
+    padding-top: 0;
+  }
+
+  > * {
+    flex-grow: 1;
+    flex-basis: 100%;
+
+    @media (width > var.$screen-large) {
+      flex-basis: 0;
+    }
+  }
+}
+
+.list-item {
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  @media (width > var.$screen-medium) {
+    border-radius: 1.5rem;
+  }
+
+  &:not(:first-child) {
+    margin-top: 0.75rem;
+
+    @media (width > var.$screen-large) {
+      margin-top: 1.5rem;
+    }
+  }
+
+  &__container {
+    padding: 0.75rem;
+    background-color: var(--navy);
+    display: flex;
+    align-items: center;
+
+    @media (width > var.$screen-medium) {
+      padding-inline: 1.25rem;
+      min-height: 5rem;
+      gap: 2rem;
+    }
+
+    > :first-child {
+      width: 2.5rem;
+
+      @media (width > var.$screen-large) {
+        width: 3.5rem;
+      }
+    }
+  }
+}
+
+/* TOPIC PAGE */
+
+.topicpage {
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    @media (width > var.$screen-medium) {
+      gap: 1.5rem;
+    }
+  }
+}
