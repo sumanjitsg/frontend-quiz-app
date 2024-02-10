@@ -2,13 +2,19 @@
   "name": "frontend-quiz-app",
   "private": true,
   "scripts": {
-    "build": "npx elm make --optimize --output dist/elm.js src/Main.elm",
-    "dev": "npx elm-live src/Main.elm --path-to-elm=./node_modules/.bin/elm --start-page=index.html --port=3000 --hot --pushstate -- --output=./dist/elm.js --debug"
+    "build": "npm run elm:build && npm run sass:build",
+    "dev": "npm-run-all --parallel sass:dev elm:dev",
+    "elm:build": "npx elm make --optimize --output dist/elm.js src/Main.elm",
+    "elm:dev": "npx elm-live src/Main.elm --path-to-elm=./node_modules/.bin/elm --start-page=index.html --port=3000 --hot --pushstate -- --output=./dist/elm.js --debug",
+    "sass:build": "npx sass index.scss dist/index.css --style compressed",
+    "sass:dev": "npx sass --watch index.scss:dist/index.css"
   },
   "license": "MIT",
   "devDependencies": {
     "elm": "^0.19.1-6",
     "elm-format": "^0.8.7",
-    "elm-live": "^4.0.2"
+    "elm-live": "^4.0.2",
+    "npm-run-all": "^4.1.5",
+    "sass": "^1.70.0"
   }
 }
