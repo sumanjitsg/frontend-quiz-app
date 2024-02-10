@@ -1,0 +1,21 @@
+/* COMPONENTS */
+
+.btn {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  border: none;
+  width: 100%;
+}
+.btn.btn--primary {
+  background-color: var(--purple);
+  border-radius: 0.75rem;
+  min-height: 5rem;
+  margin-top: 2rem;
+}
+
+@media (width > 48rem) {
+  .btn.btn--primary {
+    border-radius: 1.5rem;
+  }
+}

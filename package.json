@@ -6,8 +6,8 @@
     "dev": "npm-run-all --parallel sass:dev elm:dev",
     "elm:build": "npx elm make --optimize --output dist/elm.js src/Main.elm",
     "elm:dev": "npx elm-live src/Main.elm --path-to-elm=./node_modules/.bin/elm --start-page=index.html --port=3000 --hot --pushstate -- --output=./dist/elm.js --debug",
-    "sass:build": "npx sass index.scss dist/index.css --style compressed",
-    "sass:dev": "npx sass --watch index.scss:dist/index.css"
+    "sass:build": "npx sass sass/index.scss dist/index.css --style compressed",
+    "sass:dev": "npx sass --watch sass/index.scss:dist/index.css"
   },
   "license": "MIT",
   "devDependencies": {

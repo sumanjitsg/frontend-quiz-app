@@ -1,0 +1,63 @@
+/* TYPOGRAPHY */
+
+/* TODO: add Rubic italic variable font */
+
+@font-face {
+  font-family: "Rubik";
+  src: url("/assets/fonts/Rubik-VariableFont_wght.ttf") format("truetype");
+}
+
+.text--xl {
+  font-size: 2.5rem;
+}
+
+.text--xl > * + * {
+  margin-top: 0.5rem;
+}
+
+.text--xl > :first-child {
+  font-weight: 300;
+}
+
+.text--large {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.text--large {
+  margin-top: 0.75rem;
+}
+
+.text--medium {
+  font-size: 1.125rem;
+}
+
+.text--italic {
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--light-bluish);
+}
+
+@media (width > 75rem) {
+  .text--xl {
+    font-size: 4rem;
+    width: max-content;
+  }
+
+  .text--large {
+    font-size: 2.25rem;
+  }
+
+  .text--large {
+    margin-top: 1.69rem;
+  }
+
+  .text--medium {
+    font-size: 1.75rem;
+  }
+
+  .text--italic {
+    font-size: 1.25rem;
+  }
+}
