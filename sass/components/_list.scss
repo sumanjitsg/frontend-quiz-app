@@ -33,6 +33,7 @@
   &__index {
     width: 2.5rem;
     aspect-ratio: 1;
+    flex-shrink: 0;
 
     @media (width > var.$screen-medium) {
       width: 3.5rem;
