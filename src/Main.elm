@@ -144,12 +144,13 @@ viewHomePage model =
                                 [ class "list-item" ]
                                 [ case Dict.get topicName model.quiz.vault of
                                     Just topicQuestions ->
+                                        -- TODO: refactor the redundant <a> blocks
                                         if topicQuestions.current == Nothing then
                                             a
                                                 [ class "list-item__container" ]
                                                 [ img
                                                     [ src topicInfo.logoSrc
-                                                    , class "topic-image"
+                                                    , class "list-item__logo"
                                                     ]
                                                     []
                                                 , span []
@@ -162,7 +163,9 @@ viewHomePage model =
                                                 , href topicInfo.urlPath
                                                 ]
                                                 [ img
-                                                    [ src topicInfo.logoSrc ]
+                                                    [ src topicInfo.logoSrc
+                                                    , class "list-item__logo"
+                                                    ]
                                                     []
                                                 , span []
                                                     [ text topicInfo.displayName ]
@@ -237,7 +240,7 @@ viewTopicPage model topic =
                                             (\( index, option ) ->
                                                 li [ class "list-item" ]
                                                     [ div [ class "list-item__container" ]
-                                                        [ span []
+                                                        [ span [ class "list-item__index" ]
                                                             [ text index ]
                                                         , span [] [ text option.text ]
                                                         ]

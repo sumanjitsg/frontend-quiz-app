@@ -1,0 +1,50 @@
+@use "variables" as var;
+
+.list-item {
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  @media (width > var.$screen-medium) {
+    border-radius: 1.5rem;
+  }
+
+  &:not(:first-child) {
+    margin-top: 0.75rem;
+
+    @media (width > var.$screen-large) {
+      margin-top: 1.5rem;
+    }
+  }
+
+  &__container {
+    padding: 0.75rem;
+    background-color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    @media (width > var.$screen-medium) {
+      padding: 1.25rem;
+      gap: 2rem;
+    }
+  }
+
+  &__logo,
+  &__index {
+    width: 2.5rem;
+    aspect-ratio: 1;
+
+    @media (width > var.$screen-medium) {
+      width: 3.5rem;
+    }
+  }
+
+  &__index {
+    background-color: var(--light-grey);
+    color: var(--grey-navy);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
